@@ -23,7 +23,8 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<UserDTO> register(@RequestBody UserDTO userDTO) {
-        return ResponseEntity.ok(convertToDTO(authService.register(convertToEntity(userDTO))));
+        UserDTO registeredUser = authService.register(userDTO);
+        return ResponseEntity.ok(registeredUser);
     }
 
     private UserDTO convertToDTO(com.example.backend.entity.User user) {

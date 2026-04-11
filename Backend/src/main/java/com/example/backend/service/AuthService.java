@@ -7,7 +7,7 @@ import com.example.backend.entity.User;
 
 public interface AuthService {
     LoginResponse login(LoginRequest request);
-    User register(UserDTO userDTO);
+    UserDTO register(UserDTO userDTO);
     User getUserByEmail(String email);
     User getCurrentUser();
 }

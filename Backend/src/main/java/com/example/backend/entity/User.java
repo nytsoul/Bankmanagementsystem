@@ -32,7 +32,7 @@ public class User {
     private String phoneNumber;
 
     @lombok.Builder.Default
-    private UserRole role = UserRole.CUSTOMER;
+    private User.UserRole role = UserRole.CUSTOMER;
 
     private String address;
     private String city;

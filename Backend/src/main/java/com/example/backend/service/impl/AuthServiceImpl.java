@@ -41,7 +41,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public User register(UserDTO userDTO) {
+    public UserDTO register(UserDTO userDTO) {
         if (userRepository.existsByEmail(userDTO.getEmail())) {
             throw new UnauthorizedException("Email already registered");
         }
@@ -55,7 +55,8 @@ public class AuthServiceImpl implements AuthService {
                 .isActive(true)
                 .build();
 
-        return userRepository.save(user);
+        User savedUser = userRepository.save(user);
+        return convertToDTO(savedUser);
     }
 
     @Override

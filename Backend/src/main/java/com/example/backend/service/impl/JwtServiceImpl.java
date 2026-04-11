@@ -10,6 +10,7 @@ import java.util.Date;
 import javax.crypto.SecretKey;
 
 @Service
+@SuppressWarnings("deprecation")
 public class JwtServiceImpl implements JwtService {
 
     @Value("${jwt.secret}")

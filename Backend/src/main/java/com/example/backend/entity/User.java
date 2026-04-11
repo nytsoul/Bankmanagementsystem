@@ -2,6 +2,7 @@ package com.example.backend.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Builder.Default;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
@@ -14,7 +15,7 @@ import java.util.Set;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@Builder(toBuilder = true)
 public class User {
     @Id
     private String id;
@@ -31,15 +32,15 @@ public class User {
     @Indexed(unique = true, sparse = true)
     private String phoneNumber;
 
-    @lombok.Builder.Default
-    private User.UserRole role = UserRole.CUSTOMER;
+    @Default
+    private UserRole role = UserRole.CUSTOMER;
 
     private String address;
     private String city;
     private String state;
     private String zipCode;
 
-    @lombok.Builder.Default
+    @Default
     private Boolean isActive = true;
 
     private Set<String> accountIds = new HashSet<>();

@@ -35,6 +35,7 @@ public class Transaction {
 
     private String referenceNumber;
 
+    @lombok.Builder.Default
     private Boolean isFraudulent = false;
 
     private String fraudReason;

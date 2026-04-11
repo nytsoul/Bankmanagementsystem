@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 public class AccountDTO {
-    private Long id;
+    private String id;
     private String accountNumber;
     private String accountType;
     private BigDecimal balance;

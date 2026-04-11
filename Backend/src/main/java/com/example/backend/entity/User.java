@@ -31,13 +31,15 @@ public class User {
     @Indexed(unique = true, sparse = true)
     private String phoneNumber;
 
-    private UserRole role;
+    @lombok.Builder.Default
+    private UserRole role = UserRole.CUSTOMER;
 
     private String address;
     private String city;
     private String state;
     private String zipCode;
 
+    @lombok.Builder.Default
     private Boolean isActive = true;
 
     private Set<String> accountIds = new HashSet<>();

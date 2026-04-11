@@ -30,15 +30,20 @@ public class Account {
 
     private BigDecimal balance;
 
+    @lombok.Builder.Default
     private BigDecimal interestRate = BigDecimal.ZERO;
 
     private LocalDateTime createdAt;
 
     private LocalDateTime lastModified;
 
+    @lombok.Builder.Default
     private Boolean isActive = true;
 
+    @lombok.Builder.Default
     private Set<String> transactionIds = new HashSet<>();
+    
+    @lombok.Builder.Default
     private Set<String> scheduledTransactionIds = new HashSet<>();
 
     public enum AccountType {

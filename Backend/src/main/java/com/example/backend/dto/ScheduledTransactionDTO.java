@@ -12,8 +12,8 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 public class ScheduledTransactionDTO {
-    private Long id;
-    private Long accountId;
+    private String id;
+    private String accountId;
     private String description;
     private BigDecimal amount;
     private LocalDateTime scheduledDate;

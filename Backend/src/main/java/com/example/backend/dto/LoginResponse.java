@@ -11,6 +11,8 @@ import lombok.NoArgsConstructor;
 @Builder
 public class LoginResponse {
     private String token;
+    
+    @lombok.Builder.Default
     private String type = "Bearer";
     private UserDTO user;
 }

@@ -17,16 +17,16 @@ public class AccountController {
 
     @PostMapping
     public ResponseEntity<AccountDTO> createAccount(@RequestBody AccountDTO accountDTO) {
-        return ResponseEntity.ok(accountService.createAccount(accountDTO, 1L)); // TODO: Get userId from auth
+        return ResponseEntity.ok(accountService.createAccount(accountDTO, "1")); // TODO: Get userId from auth
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<AccountDTO> getAccount(@PathVariable Long id) {
-        return ResponseEntity.ok(accountService.getAccountById(id));
+    public ResponseEntity<AccountDTO> getAccount(@PathVariable String id) {
+        return ResponseEntity.ok(accountService.getAccountByNumber(id));
     }
 
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<AccountDTO>> getUserAccounts(@PathVariable Long userId) {
+    public ResponseEntity<List<AccountDTO>> getUserAccounts(@PathVariable String userId) {
         return ResponseEntity.ok(accountService.getAccountsByUserId(userId));
     }
 
@@ -36,13 +36,13 @@ public class AccountController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<AccountDTO> updateAccount(@PathVariable Long id, @RequestBody AccountDTO accountDTO) {
-        return ResponseEntity.ok(accountService.updateAccount(id, accountDTO));
+    public ResponseEntity<AccountDTO> updateAccount(@PathVariable String id, @RequestBody AccountDTO accountDTO) {
+        return ResponseEntity.ok(accountService.updateAccount(Long.parseLong(id), accountDTO));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteAccount(@PathVariable Long id) {
-        accountService.deleteAccount(id);
+    public ResponseEntity<Void> deleteAccount(@PathVariable String id) {
+        accountService.deleteAccount(Long.parseLong(id));
         return ResponseEntity.noContent().build();
     }
 }

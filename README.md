@@ -102,25 +102,35 @@ pnpm run build
 pnpm run preview
 ```
 
-## Backend Setup (Spring Boot)
+## Backend Setup (Spring Boot + MongoDB)
 
 ### Prerequisites
 - Java 17 or higher
-- MySQL 8.0 or higher
+- MongoDB 4.0 or higher
 - Maven 3.6.0 or higher
 
 ### Database Setup
 
-1. Create a MySQL database:
-```sql
-CREATE DATABASE bank_management;
+MongoDB will automatically create the `bank_management` database when the backend first runs. 
+
+**Option 1: Install MongoDB locally**
+- Download from https://www.mongodb.com/try/download/community
+- Install and start MongoDB service
+
+**Option 2: Use Docker**
+```bash
+docker run -d -p 27017:27017 --name mongodb mongo:latest
 ```
 
-2. Update database credentials in `Backend/src/main/resources/application.properties`:
+### Backend Configuration
+
+Update MongoDB URI in `Backend/src/main/resources/application.properties`:
 ```properties
-spring.datasource.url=jdbc:mysql://localhost:3306/bank_management
-spring.datasource.username=root
-spring.datasource.password=your_password
+# Local MongoDB (default)
+spring.data.mongodb.uri=mongodb://localhost:27017/bank_management
+
+# OR with authentication
+spring.data.mongodb.uri=mongodb://username:password@localhost:27017/bank_management?authSource=admin
 ```
 
 ### Backend Installation & Running

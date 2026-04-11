@@ -1,11 +1,11 @@
 # Bank Management System - Backend Setup Guide
 
 ## Overview
-This is a Spring Boot 4.0.5 backend for the Bank Management System. It provides REST APIs for managing accounts, transactions, scheduled transactions, and fraud detection.
+This is a Spring Boot 4.0.5 backend for the Bank Management System. It provides REST APIs for managing accounts, transactions, scheduled transactions, and fraud detection. The backend uses **MongoDB** as the NoSQL database.
 
 ## Prerequisites
 - Java 17 or higher
-- MySQL 8.0 or higher
+- MongoDB 4.0 or higher
 - Maven 3.6.0 or higher
 
 ## Technology Stack
@@ -14,8 +14,9 @@ This is a Spring Boot 4.0.5 backend for the Bank Management System. It provides 
 |-----------|---------|
 | Spring Boot | 4.0.5 |
 | Java | 17 |
-| MySQL | 8.0+ |
+| MongoDB | 4.0+ |
 | Maven | 3.6.0+ |
+| Spring Data MongoDB | Latest |
 | JWT (io.jsonwebtoken) | 0.12.3 |
 | Lombok | Latest |
 
@@ -23,26 +24,59 @@ This is a Spring Boot 4.0.5 backend for the Bank Management System. It provides 
 
 ### 1. Database Setup
 
-Create MySQL database and user:
-```sql
-CREATE DATABASE bank_management;
-CREATE USER 'bank_user'@'localhost' IDENTIFIED BY 'secure_password';
-GRANT ALL PRIVILEGES ON bank_management.* TO 'bank_user'@'localhost';
-FLUSH PRIVILEGES;
+#### Install MongoDB
+
+**Windows:**
+1. Download from https://www.mongodb.com/try/download/community
+2. Run the installer
+3. MongoDB will be installed as a service and start automatically
+
+**Verify MongoDB is running:**
+```bash
+# Open MongoDB shell
+mongosh
+
+# Create database and collections (optional - auto-created by Spring)
+use bank_management
+```
+
+#### Alternative: Docker Setup
+```bash
+# Pull and run MongoDB container
+docker run -d -p 27017:27017 --name mongodb mongo:latest
+
+# With authentication:
+docker run -d -p 27017:27017 \
+  -e MONGO_INITDB_ROOT_USERNAME=admin \
+  -e MONGO_INITDB_ROOT_PASSWORD=password \
+  --name mongodb mongo:latest
 ```
 
 ### 2. Backend Configuration
 
 Update `src/main/resources/application.properties`:
-```properties
-# MySQL Database
-spring.datasource.url=jdbc:mysql://localhost:3306/bank_management
-spring.datasource.username=bank_user
-spring.datasource.password=secure_password
 
-# JWT Secret (Change in production!)
-jwt.secret=your-very-long-secret-key-change-this-in-production
-jwt.expiration=86400000
+**For local MongoDB (no authentication):**
+```properties
+spring.data.mongodb.uri=mongodb://localhost:27017/bank_management
+spring.data.mongodb.auto-index-creation=true
+```
+
+**For MongoDB with authentication:**
+```properties
+spring.data.mongodb.uri=mongodb://username:password@localhost:27017/bank_management?authSource=admin
+spring.data.mongodb.auto-index-creation=true
+```
+
+**Or use individual properties:**
+```properties
+spring.data.mongodb.host=localhost
+spring.data.mongodb.port=27017
+spring.data.mongodb.database=bank_management
+spring.data.mongodb.username=admin
+spring.data.mongodb.password=password
+spring.data.mongodb.authentication-database=admin
+spring.data.mongodb.auto-index-creation=true
 ```
 
 ### 3. Build & Run
@@ -108,12 +142,12 @@ Backend/src/main/java/com/example/backend/
 │   ├── TransactionService.java
 │   ├── ScheduledTransactionService.java
 │   └── JwtService.java
-├── repository/              # Spring Data JPA Repositories
+├── repository/              # Spring Data MongoDB Repositories
 │   ├── UserRepository.java
 │   ├── AccountRepository.java
 │   ├── TransactionRepository.java
 │   └── ScheduledTransactionRepository.java
-├── entity/                  # JPA Entity Models
+├── entity/                  # MongoDB Document Models
 │   ├── User.java
 │   ├── Account.java
 │   ├── Transaction.java
@@ -134,52 +168,91 @@ Backend/src/main/java/com/example/backend/
 └── BackendApplication.java  # Main Application Class
 ```
 
-## Database Schema
+## Database Collections
 
-### Users Table
-- `id`: Primary Key
+### Users Collection
+Documents store:
+- `_id`: MongoDB ObjectId (converted to String)
 - `email`: Unique email
 - `password`: Encrypted password
-- `first_name`: User's first name
-- `last_name`: User's last name
-- `phone_number`: Contact number
+- `firstName`: User's first name
+- `lastName`: User's last name
+- `phoneNumber`: Contact number
 - `role`: CUSTOMER or ADMIN
-- `is_active`: Account status
+- `address`, `city`, `state`, `zipCode`: Address fields
+- `isActive`: Account status (true/false)
+- `accountIds`: Array of account IDs (references)
 
-### Accounts Table
-- `id`: Primary Key
-- `account_number`: Unique account number
-- `user_id`: Foreign Key to Users
-- `account_type`: SAVINGS, CHECKING, MONEY_MARKET, CD
-- `balance`: Current balance
-- `interest_rate`: Interest rate for account
-- `created_at`: Account creation date
-- `is_active`: Account status
+**Index:**
+```javascript
+db.users.createIndex({ "email": 1 }, { unique: true })
+db.users.createIndex({ "phoneNumber": 1 }, { unique: true, sparse: true })
+```
 
-### Transactions Table
-- `id`: Primary Key
-- `account_id`: Foreign Key to Accounts
-- `transaction_type`: DEPOSIT, WITHDRAWAL, TRANSFER, PAYMENT, INTEREST
-- `amount`: Transaction amount
-- `transaction_date`: Date of transaction
+### Accounts Collection
+Documents store:
+- `_id`: MongoDB ObjectId
+- `accountNumber`: Unique account number
+- `userId`: Reference to user (String)
+- `accountType`: SAVINGS, CHECKING, MONEY_MARKET, CD
+- `balance`: BigDecimal current balance
+- `interestRate`: Interest rate
+- `createdAt`: Account creation timestamp
+- `lastModified`: Last update timestamp
+- `isActive`: Status (true/false)
+- `transactionIds`: Array of transaction IDs
+- `scheduledTransactionIds`: Array of scheduled transaction IDs
+
+**Index:**
+```javascript
+db.accounts.createIndex({ "accountNumber": 1 }, { unique: true })
+db.accounts.createIndex({ "userId": 1 })
+```
+
+### Transactions Collection
+Documents store:
+- `_id`: MongoDB ObjectId
+- `accountId`: Reference to account
+- `transactionType`: DEPOSIT, WITHDRAWAL, TRANSFER, PAYMENT, INTEREST
+- `amount`: BigDecimal transaction amount
+- `transactionDate`: Timestamp
 - `description`: Transaction details
-- `recipient_account`: Recipient account number
-- `recipient_name`: Recipient name
+- `recipientAccount`: Recipient account number
+- `recipientName`: Recipient name
 - `status`: PENDING, COMPLETED, FAILED, CANCELLED
-- `reference_number`: Unique transaction reference
-- `is_fraudulent`: Fraud flag
-- `fraud_reason`: Reason for fraud flag
+- `referenceNumber`: Unique reference
+- `isFraudulent`: Boolean fraud flag
+- `fraudReason`: Fraud reason (if flagged)
 
-### Scheduled Transactions Table
-- `id`: Primary Key
-- `account_id`: Foreign Key to Accounts
+**Index:**
+```javascript
+db.transactions.createIndex({ "accountId": 1 })
+db.transactions.createIndex({ "transactionDate": -1 })
+db.transactions.createIndex({ "isFraudulent": 1 })
+```
+
+### Scheduled Transactions Collection
+Documents store:
+- `_id`: MongoDB ObjectId
+- `accountId`: Reference to account
 - `description`: Transaction description
-- `amount`: Amount to transfer
-- `scheduled_date`: Scheduled date
-- `next_execution_date`: Next execution date
-- `recurrence_type`: ONCE, DAILY, WEEKLY, BIWEEKLY, MONTHLY, QUARTERLY, YEARLY
-- `recurrence_interval`: Interval for recurrence
+- `amount`: BigDecimal amount
+- `scheduledDate`: Scheduled date
+- `nextExecutionDate`: Next run date
+- `recurrenceType`: ONCE, DAILY, WEEKLY, BIWEEKLY, MONTHLY, QUARTERLY, YEARLY
+- `recurrenceInterval`: Interval count
 - `status`: ACTIVE, PAUSED, COMPLETED, CANCELLED
+- `recipientAccount`: Recipient account
+- `recipientName`: Recipient name
+- `createdAt`: Creation timestamp
+- `lastModified`: Last update timestamp
+
+**Index:**
+```javascript
+db.scheduled_transactions.createIndex({ "accountId": 1 })
+db.scheduled_transactions.createIndex({ "status": 1 })
+db.scheduled_transactions.createIndex({ "nextExecutionDate": 1 })
+```
 
 ## Key Features Implemented
 
@@ -216,7 +289,7 @@ Backend/src/main/java/com/example/backend/
 2. **JWT Tokens**: Tokens expire after 24 hours
 3. **CORS Configuration**: Limited to frontend origins
 4. **Input Validation**: All inputs are validated
-5. **SQL Injection Prevention**: Using prepared statements via JPA
+5. **NoSQL Injection Prevention**: Using Spring Data MongoDB with parameterized queries
 
 ## Development Tips
 
@@ -224,27 +297,49 @@ Backend/src/main/java/com/example/backend/
 Update `application.properties`:
 ```properties
 logging.level.com.example.backend=DEBUG
-logging.level.org.springframework.web=DEBUG
+logging.level.org.springframework.data.mongodb=DEBUG
 ```
 
 ### Hot Reload
 Include Spring DevTools for automatic reload on file changes:
 ```bash
-mvn spring-boot:run -Dspring-boot.run.arguments="--debug"
+mvn spring-boot:run
 ```
 
-### Database Reset
-To reset the database schema:
-1. Update `spring.jpa.hibernate.ddl-auto=create` temporarily
-2. Run the application
-3. Change back to `update`
+### View MongoDB Data
+Use MongoDB Compass or mongosh CLI:
+```bash
+# Open mongosh
+mongosh
+
+# Connect to database
+use bank_management
+
+# View collections
+show collections
+
+# View sample documents
+db.users.find()
+db.accounts.find()
+db.transactions.find()
+```
+
+### Export/Import Data
+```bash
+# Export collection
+mongoexport --db bank_management --collection users --out users.json
+
+# Import collection
+mongoimport --db bank_management --collection users --file users.json
+```
 
 ## Troubleshooting
 
 ### Connection Issues
-- Verify MySQL is running
-- Check credentials in application.properties
-- Ensure database exists
+- Verify MongoDB is running: `mongosh --version` and check MongoDB service
+- Check URI in application.properties
+- Ensure database name is correct
+- Verify authentication credentials if applicable
 
 ### Build Errors
 - Clear Maven cache: `mvn clean`
@@ -254,6 +349,11 @@ To reset the database schema:
 ### Port Conflicts
 - Change port in application.properties: `server.port=8081`
 
+### MongoDB Connection Timeout
+- Check MongoDB is listening on port 27017
+- Firewall may be blocking connections
+- Try local development first
+
 ## Next Steps
 
 1. Implement service layer methods
@@ -262,10 +362,12 @@ To reset the database schema:
 4. Add comprehensive error handling
 5. Create unit and integration tests
 6. Add API documentation (Swagger/OpenAPI)
+7. Implement data aggregation pipelines for analytics
 
 ## References
 
 - Spring Boot Documentation: https://spring.io/projects/spring-boot
-- Spring Data JPA: https://spring.io/projects/spring-data-jpa
+- Spring Data MongoDB: https://spring.io/projects/spring-data-mongodb
+- MongoDB Documentation: https://docs.mongodb.com/
 - JWT with Spring Security: https://jwt.io/
-- MySQL Documentation: https://dev.mysql.com/doc/
+- MongoDB Compass: https://www.mongodb.com/products/compass

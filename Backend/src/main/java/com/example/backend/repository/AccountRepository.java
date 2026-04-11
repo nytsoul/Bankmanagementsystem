@@ -1,15 +1,14 @@
 package com.example.backend.repository;
 
 import com.example.backend.entity.Account;
-import com.example.backend.entity.User;
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface AccountRepository extends JpaRepository<Account, Long> {
+public interface AccountRepository extends MongoRepository<Account, String> {
     Optional<Account> findByAccountNumber(String accountNumber);
-    List<Account> findByUser(User user);
-    List<Account> findByUserAndIsActiveTrue(User user);
+    List<Account> findByUserId(String userId);
+    List<Account> findByUserIdAndIsActiveTrue(String userId);
 }

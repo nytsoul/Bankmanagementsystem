@@ -22,26 +22,38 @@ Frontend will run at: `http://localhost:5173`
 
 ### Prerequisites
 - Java 17+ installed
-- MySQL 8.0+ running
+- MongoDB 4.0+ running
 - Maven 3.6.0+ installed
 
 ### Step-by-step
 
-#### A. Create MySQL Database
-Open MySQL CLI and run:
-```sql
-CREATE DATABASE bank_management;
-CREATE USER 'bank_user'@'localhost' IDENTIFIED BY 'password123';
-GRANT ALL PRIVILEGES ON bank_management.* TO 'bank_user'@'localhost';
-FLUSH PRIVILEGES;
+#### A. Start MongoDB
+**Option 1: Local Installation**
+```bash
+# Windows: Start MongoDB service
+# It's usually installed as a Windows service and starts automatically
+```
+
+**Option 2: Docker**
+```bash
+# Pull and run MongoDB container
+docker run -d -p 27017:27017 --name mongodb mongo:latest
+```
+
+**Verify MongoDB is running:**
+```bash
+# Test connection
+mongosh
 ```
 
 #### B. Configure Backend
 Edit `Backend/src/main/resources/application.properties`:
 ```properties
-spring.datasource.url=jdbc:mysql://localhost:3306/bank_management
-spring.datasource.username=bank_user
-spring.datasource.password=password123
+# For local MongoDB (no authentication)
+spring.data.mongodb.uri=mongodb://localhost:27017/bank_management
+
+# For MongoDB with Docker
+spring.data.mongodb.uri=mongodb://localhost:27017/bank_management
 ```
 
 #### C. Build & Run
@@ -67,10 +79,14 @@ Backend will run at: `http://localhost:8080/api`
 - Check endpoints: http://localhost:8080/api/auth/login
 - Should see CORS-enabled responses
 
-### Database
+### MongoDB
 ```bash
-mysql -u bank_user -p bank_management
-SHOW TABLES;
+# Open MongoDB shell
+mongosh
+
+# Check if database is created
+use bank_management
+show collections
 ```
 
 ## Project Architecture
@@ -85,9 +101,9 @@ SHOW TABLES;
 │    Backend (Spring Boot)                │
 │    http://localhost:8080/api            │
 └─────────────────┬───────────────────────┘
-                  │ (JDBC)
+                  │ (Spring Data MongoDB)
 ┌─────────────────▼───────────────────────┐
-│   MySQL Database                        │
+│   MongoDB Database                      │
 │   bank_management                       │
 └─────────────────────────────────────────┘
 ```
@@ -142,18 +158,39 @@ mvn spring-boot:run
 # DevTools enabled - changes trigger auto-restart
 ```
 
-### Database Updates
-- Tables auto-create/update via Hibernate
-- Check `application.properties`:
-  - `spring.jpa.hibernate.ddl-auto=update`
+### Database Management
+#### View MongoDB Collections
+```bash
+mongosh
+
+# Use the database
+use bank_management
+
+# View collections
+show collections
+
+# View sample documents
+db.users.find()
+db.accounts.find()
+db.transactions.find()
+```
+
+#### Export/Import Data
+```bash
+# Export collection
+mongoexport --db bank_management --collection users --out users.json
+
+# Import collection
+mongoimport --db bank_management --collection users --file users.json
+```
 
 ## Troubleshooting
 
-### Issue: MySQL Connection Failed
+### Issue: MongoDB Connection Failed
 **Solution:**
-- Verify MySQL is running: `mysql -u root`
-- Check credentials in application.properties
-- Create database: `CREATE DATABASE bank_management;`
+- Verify MongoDB is running: `mongosh` or check Windows Services
+- Check URI in application.properties
+- Ensure port 27017 is not blocked by firewall
 
 ### Issue: Port 8080 Already In Use
 **Solution:**
@@ -176,6 +213,12 @@ mvn clean
 mvn install
 ```
 
+### Issue: Maven Not Found
+**Solution:**
+- Ensure Maven is installed: `mvn --version`
+- Add Maven to PATH environment variable
+- Download from https://maven.apache.org/
+
 ## Next Steps
 
 1. **Implement Service Methods** - Add business logic to service classes
@@ -194,14 +237,14 @@ Backend/
 ├── src/main/java/com/example/backend/
 │   ├── controller/          # API Endpoints
 │   ├── service/             # Business Logic
-│   ├── repository/          # Data Access
-│   ├── entity/              # Database Models
+│   ├── repository/          # Data Access (MongoDB)
+│   ├── entity/              # Database Models (@Document)
 │   ├── dto/                 # API Data Transfer
 │   ├── config/              # Spring Config
 │   ├── security/            # Authentication
 │   └── exception/           # Error Handling
 ├── src/main/resources/
-│   ├── application.properties   # Config
+│   ├── application.properties   # Config (MongoDB URI)
 │   └── static/              # Static files
 ├── pom.xml                  # Maven Dependencies
 └── BACKEND_README.md        # Full Documentation
@@ -211,7 +254,7 @@ Backend/
 
 - Frontend: See `README.md`
 - Backend: See `Backend/BACKEND_README.md`
-- Database Schema: See `Backend/BACKEND_README.md` Database Schema section
+- MongoDB Collections: See `Backend/BACKEND_README.md` Database Collections section
 
 ---
 

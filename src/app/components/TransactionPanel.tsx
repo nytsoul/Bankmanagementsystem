@@ -52,19 +52,19 @@ export function TransactionPanel() {
   };
 
   const tabs = [
-    { id: 'deposit', label: 'Deposit', icon: ArrowDown, color: 'text-green-600', bg: 'bg-green-50' },
-    { id: 'withdraw', label: 'Withdraw', icon: ArrowUp, color: 'text-red-600', bg: 'bg-red-50' },
-    { id: 'transfer', label: 'Transfer', icon: ArrowLeftRight, color: 'text-blue-600', bg: 'bg-blue-50' },
+    { id: 'deposit', label: 'Deposit', icon: ArrowDown, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+    { id: 'withdraw', label: 'Withdraw', icon: ArrowUp, color: 'text-rose-600', bg: 'bg-rose-50' },
+    { id: 'transfer', label: 'Transfer', icon: ArrowLeftRight, color: 'text-sky-600', bg: 'bg-sky-50' },
   ];
 
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-3xl text-gray-800 mb-2">Transactions</h1>
-        <p className="text-gray-600">Manage your money</p>
+        <h1 className="text-3xl text-slate-900 mb-2">Transactions</h1>
+        <p className="text-slate-600">Manage your money</p>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
+      <div className="bg-white/90 rounded-xl border border-sky-100 p-6">
         <div className="flex gap-2 mb-6">
           {tabs.map((tab) => {
             const Icon = tab.icon;
@@ -77,7 +77,7 @@ export function TransactionPanel() {
                 className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg transition-colors ${
                   activeTab === tab.id
                     ? `${tab.bg} ${tab.color}`
-                    : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+                    : 'bg-sky-50 text-slate-600 hover:bg-sky-100'
                 }`}
               >
                 <Icon className="w-5 h-5" />
@@ -96,11 +96,11 @@ export function TransactionPanel() {
             className="space-y-4"
           >
             <div>
-              <label className="block text-sm text-gray-700 mb-2">Select Account</label>
+              <label className="block text-sm text-slate-700 mb-2">Select Account</label>
               <select
                 value={accountId}
                 onChange={(e) => setAccountId(e.target.value)}
-                className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                className="w-full px-4 py-2 bg-white/70 border border-sky-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 required
               >
                 <option value="">Choose an account</option>
@@ -113,12 +113,12 @@ export function TransactionPanel() {
             </div>
 
             <div>
-              <label className="block text-sm text-gray-700 mb-2">Amount</label>
+              <label className="block text-sm text-slate-700 mb-2">Amount</label>
               <input
                 type="number"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
-                className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                className="w-full px-4 py-2 bg-white/70 border border-sky-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 placeholder="0.00"
                 min="0.01"
                 step="0.01"
@@ -127,12 +127,12 @@ export function TransactionPanel() {
             </div>
 
             <div>
-              <label className="block text-sm text-gray-700 mb-2">Description</label>
+              <label className="block text-sm text-slate-700 mb-2">Description</label>
               <input
                 type="text"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                className="w-full px-4 py-2 bg-white/70 border border-sky-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 placeholder="Enter description"
                 required
               />
@@ -140,7 +140,7 @@ export function TransactionPanel() {
 
             <button
               type="submit"
-              className="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition-colors"
+              className="w-full bg-emerald-600 text-white py-3 rounded-lg hover:bg-emerald-700 transition-colors"
             >
               Deposit Money
             </button>
@@ -156,11 +156,11 @@ export function TransactionPanel() {
             className="space-y-4"
           >
             <div>
-              <label className="block text-sm text-gray-700 mb-2">Select Account</label>
+              <label className="block text-sm text-slate-700 mb-2">Select Account</label>
               <select
                 value={accountId}
                 onChange={(e) => setAccountId(e.target.value)}
-                className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                className="w-full px-4 py-2 bg-white/70 border border-sky-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500"
                 required
               >
                 <option value="">Choose an account</option>
@@ -173,12 +173,12 @@ export function TransactionPanel() {
             </div>
 
             <div>
-              <label className="block text-sm text-gray-700 mb-2">Amount</label>
+              <label className="block text-sm text-slate-700 mb-2">Amount</label>
               <input
                 type="number"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
-                className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                className="w-full px-4 py-2 bg-white/70 border border-sky-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500"
                 placeholder="0.00"
                 min="0.01"
                 step="0.01"
@@ -187,12 +187,12 @@ export function TransactionPanel() {
             </div>
 
             <div>
-              <label className="block text-sm text-gray-700 mb-2">Description</label>
+              <label className="block text-sm text-slate-700 mb-2">Description</label>
               <input
                 type="text"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                className="w-full px-4 py-2 bg-white/70 border border-sky-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500"
                 placeholder="Enter description"
                 required
               />
@@ -200,7 +200,7 @@ export function TransactionPanel() {
 
             <button
               type="submit"
-              className="w-full bg-red-600 text-white py-3 rounded-lg hover:bg-red-700 transition-colors"
+              className="w-full bg-rose-600 text-white py-3 rounded-lg hover:bg-rose-700 transition-colors"
             >
               Withdraw Money
             </button>
@@ -216,11 +216,11 @@ export function TransactionPanel() {
             className="space-y-4"
           >
             <div>
-              <label className="block text-sm text-gray-700 mb-2">From Account</label>
+              <label className="block text-sm text-slate-700 mb-2">From Account</label>
               <select
                 value={accountId}
                 onChange={(e) => setAccountId(e.target.value)}
-                className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 bg-white/70 border border-sky-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500"
                 required
               >
                 <option value="">Choose an account</option>
@@ -233,11 +233,11 @@ export function TransactionPanel() {
             </div>
 
             <div>
-              <label className="block text-sm text-gray-700 mb-2">To Account Number</label>
+              <label className="block text-sm text-slate-700 mb-2">To Account Number</label>
               <select
                 value={toAccountId}
                 onChange={(e) => setToAccountId(e.target.value)}
-                className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 bg-white/70 border border-sky-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500"
                 required
               >
                 <option value="">Choose destination account</option>
@@ -252,12 +252,12 @@ export function TransactionPanel() {
             </div>
 
             <div>
-              <label className="block text-sm text-gray-700 mb-2">Amount</label>
+              <label className="block text-sm text-slate-700 mb-2">Amount</label>
               <input
                 type="number"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
-                className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 bg-white/70 border border-sky-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500"
                 placeholder="0.00"
                 min="0.01"
                 step="0.01"
@@ -266,12 +266,12 @@ export function TransactionPanel() {
             </div>
 
             <div>
-              <label className="block text-sm text-gray-700 mb-2">Description</label>
+              <label className="block text-sm text-slate-700 mb-2">Description</label>
               <input
                 type="text"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 bg-white/70 border border-sky-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500"
                 placeholder="Enter description"
                 required
               />
@@ -279,7 +279,7 @@ export function TransactionPanel() {
 
             <button
               type="submit"
-              className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors"
+              className="w-full bg-sky-600 text-white py-3 rounded-lg hover:bg-sky-700 transition-colors"
             >
               Transfer Money
             </button>

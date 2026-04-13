@@ -16,8 +16,8 @@ export function MyAccounts() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-3xl text-gray-800 mb-2">My Accounts</h1>
-        <p className="text-gray-600">View and manage your accounts</p>
+        <h1 className="text-3xl text-slate-900 mb-2">My Accounts</h1>
+        <p className="text-slate-600">View and manage your accounts</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -28,7 +28,7 @@ export function MyAccounts() {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: index * 0.1 }}
             whileHover={{ y: -4 }}
-            className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white shadow-lg"
+            className="bg-gradient-to-br from-sky-500 to-emerald-500 rounded-xl p-6 text-white shadow-lg"
           >
             <div className="flex items-start justify-between mb-6">
               <div>
@@ -50,8 +50,8 @@ export function MyAccounts() {
                 <p className="text-xs opacity-75 mb-1">Status</p>
                 <span className={`px-3 py-1 rounded-full text-xs ${
                   account.status === 'active'
-                    ? 'bg-green-400/30 text-white'
-                    : 'bg-red-400/30 text-white'
+                    ? 'bg-emerald-400/30 text-white'
+                    : 'bg-rose-400/30 text-white'
                 }`}>
                   {account.status}
                 </span>
@@ -77,8 +77,8 @@ export function MyAccounts() {
       </div>
 
       {customerAccounts.length === 0 && (
-        <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
-          <p className="text-gray-500">No accounts found</p>
+        <div className="bg-white/90 rounded-xl border border-sky-100 p-12 text-center">
+          <p className="text-slate-500">No accounts found</p>
         </div>
       )}
     </div>

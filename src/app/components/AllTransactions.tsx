@@ -26,24 +26,24 @@ export function AllTransactions() {
 
   const getColor = (type: string) => {
     switch (type) {
-      case 'deposit': return 'text-green-600';
-      case 'withdrawal': return 'text-red-600';
-      case 'transfer': return 'text-blue-600';
-      default: return 'text-gray-600';
+      case 'deposit': return 'text-emerald-600';
+      case 'withdrawal': return 'text-rose-600';
+      case 'transfer': return 'text-sky-600';
+      default: return 'text-slate-600';
     }
   };
 
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-3xl text-gray-800 mb-2">All Transactions</h1>
-        <p className="text-gray-600">Monitor all bank transactions</p>
+        <h1 className="text-3xl text-slate-900 mb-2">All Transactions</h1>
+        <p className="text-slate-600">Monitor all bank transactions</p>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
+      <div className="bg-white/90 rounded-xl border border-sky-100 p-6 mb-6">
         <div className="flex items-center gap-2 mb-4">
-          <Filter className="w-5 h-5 text-gray-600" />
-          <span className="text-sm text-gray-700">Filter by type:</span>
+          <Filter className="w-5 h-5 text-slate-600" />
+          <span className="text-sm text-slate-700">Filter by type:</span>
         </div>
         <div className="flex gap-2">
           {(['all', 'deposit', 'withdrawal', 'transfer'] as const).map((type) => (
@@ -54,8 +54,8 @@ export function AllTransactions() {
               onClick={() => setFilterType(type)}
               className={`px-4 py-2 rounded-lg capitalize transition-colors ${
                 filterType === type
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  ? 'bg-teal-600 text-white'
+                  : 'bg-sky-50 text-slate-700 hover:bg-sky-100'
               }`}
             >
               {type}
@@ -64,17 +64,17 @@ export function AllTransactions() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <div className="bg-white/90 rounded-xl border border-sky-100 overflow-hidden">
         <table className="w-full">
-          <thead className="bg-gray-50 border-b border-gray-200">
+          <thead className="bg-sky-50/70 border-b border-sky-100">
             <tr>
-              <th className="px-6 py-4 text-left text-sm text-gray-600">Date</th>
-              <th className="px-6 py-4 text-left text-sm text-gray-600">Customer</th>
-              <th className="px-6 py-4 text-left text-sm text-gray-600">Account</th>
-              <th className="px-6 py-4 text-left text-sm text-gray-600">Type</th>
-              <th className="px-6 py-4 text-left text-sm text-gray-600">Description</th>
-              <th className="px-6 py-4 text-left text-sm text-gray-600">Amount</th>
-              <th className="px-6 py-4 text-left text-sm text-gray-600">Status</th>
+              <th className="px-6 py-4 text-left text-sm text-slate-600">Date</th>
+              <th className="px-6 py-4 text-left text-sm text-slate-600">Customer</th>
+              <th className="px-6 py-4 text-left text-sm text-slate-600">Account</th>
+              <th className="px-6 py-4 text-left text-sm text-slate-600">Type</th>
+              <th className="px-6 py-4 text-left text-sm text-slate-600">Description</th>
+              <th className="px-6 py-4 text-left text-sm text-slate-600">Amount</th>
+              <th className="px-6 py-4 text-left text-sm text-slate-600">Status</th>
             </tr>
           </thead>
           <tbody>
@@ -90,22 +90,22 @@ export function AllTransactions() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: Math.min(index * 0.02, 0.5) }}
-                  className={`border-b border-gray-100 hover:bg-gray-50 transition-colors ${
-                    transaction.isFlagged ? 'bg-red-50/50' : ''
+                  className={`border-b border-sky-50 hover:bg-sky-50/60 transition-colors ${
+                    transaction.isFlagged ? 'bg-rose-50/40' : ''
                   }`}
                 >
-                  <td className="px-6 py-4 text-sm text-gray-600">
+                  <td className="px-6 py-4 text-sm text-slate-600">
                     {new Date(transaction.timestamp).toLocaleDateString()}
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-800">{customer?.name}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{account?.accountNumber}</td>
+                  <td className="px-6 py-4 text-sm text-slate-900">{customer?.name}</td>
+                  <td className="px-6 py-4 text-sm text-slate-600">{account?.accountNumber}</td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2">
                       <Icon className={`w-4 h-4 ${color}`} />
-                      <span className="text-sm text-gray-700 capitalize">{transaction.type}</span>
+                      <span className="text-sm text-slate-700 capitalize">{transaction.type}</span>
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{transaction.description}</td>
+                  <td className="px-6 py-4 text-sm text-slate-600">{transaction.description}</td>
                   <td className="px-6 py-4">
                     <span className={`text-sm ${color}`}>
                       {transaction.type === 'deposit' ? '+' : '-'}
@@ -114,11 +114,11 @@ export function AllTransactions() {
                   </td>
                   <td className="px-6 py-4">
                     {transaction.isFlagged ? (
-                      <span className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs">
+                      <span className="px-3 py-1 bg-rose-100 text-rose-700 rounded-full text-xs">
                         Flagged
                       </span>
                     ) : (
-                      <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs">
+                      <span className="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs">
                         Normal
                       </span>
                     )}

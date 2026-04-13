@@ -27,24 +27,24 @@ export function TransactionHistory() {
 
   const getColor = (type: string) => {
     switch (type) {
-      case 'deposit': return 'text-green-600';
-      case 'withdrawal': return 'text-red-600';
-      case 'transfer': return 'text-blue-600';
-      default: return 'text-gray-600';
+      case 'deposit': return 'text-emerald-600';
+      case 'withdrawal': return 'text-rose-600';
+      case 'transfer': return 'text-sky-600';
+      default: return 'text-slate-600';
     }
   };
 
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-3xl text-gray-800 mb-2">Transaction History</h1>
-        <p className="text-gray-600">View all your transactions</p>
+        <h1 className="text-3xl text-slate-900 mb-2">Transaction History</h1>
+        <p className="text-slate-600">View all your transactions</p>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
+      <div className="bg-white/90 rounded-xl border border-sky-100 p-6 mb-6">
         <div className="flex items-center gap-2 mb-4">
-          <Filter className="w-5 h-5 text-gray-600" />
-          <span className="text-sm text-gray-700">Filter by type:</span>
+          <Filter className="w-5 h-5 text-slate-600" />
+          <span className="text-sm text-slate-700">Filter by type:</span>
         </div>
         <div className="flex gap-2">
           {(['all', 'deposit', 'withdrawal', 'transfer'] as const).map((type) => (
@@ -55,8 +55,8 @@ export function TransactionHistory() {
               onClick={() => setFilterType(type)}
               className={`px-4 py-2 rounded-lg capitalize transition-colors ${
                 filterType === type
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  ? 'bg-teal-600 text-white'
+                  : 'bg-sky-50 text-slate-700 hover:bg-sky-100'
               }`}
             >
               {type}
@@ -67,8 +67,8 @@ export function TransactionHistory() {
 
       <div className="space-y-3">
         {filteredTransactions.length === 0 ? (
-          <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
-            <p className="text-gray-500">No transactions found</p>
+          <div className="bg-white/90 rounded-xl border border-sky-100 p-12 text-center">
+            <p className="text-slate-500">No transactions found</p>
           </div>
         ) : (
           filteredTransactions.map((transaction, index) => {
@@ -82,28 +82,28 @@ export function TransactionHistory() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
-                className={`bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md transition-shadow ${
-                  transaction.isFlagged ? 'border-red-300 bg-red-50/30' : ''
+                className={`bg-white/90 rounded-xl border border-sky-100 p-4 hover:shadow-md transition-shadow ${
+                  transaction.isFlagged ? 'border-rose-300 bg-rose-50/30' : ''
                 }`}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     <div className={`p-3 rounded-lg ${
-                      transaction.type === 'deposit' ? 'bg-green-50' :
-                      transaction.type === 'withdrawal' ? 'bg-red-50' :
-                      'bg-blue-50'
+                      transaction.type === 'deposit' ? 'bg-emerald-50' :
+                      transaction.type === 'withdrawal' ? 'bg-rose-50' :
+                      'bg-sky-50'
                     }`}>
                       <Icon className={`w-5 h-5 ${color}`} />
                     </div>
                     <div>
-                      <p className="text-sm text-gray-800">{transaction.description}</p>
+                      <p className="text-sm text-slate-900">{transaction.description}</p>
                       <div className="flex items-center gap-4 mt-1">
-                        <p className="text-xs text-gray-500">A/C: {account?.accountNumber}</p>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-slate-500">A/C: {account?.accountNumber}</p>
+                        <p className="text-xs text-slate-500">
                           {new Date(transaction.timestamp).toLocaleString()}
                         </p>
                         {transaction.isFlagged && (
-                          <span className="px-2 py-0.5 bg-red-100 text-red-700 rounded text-xs">
+                          <span className="px-2 py-0.5 bg-rose-100 text-rose-700 rounded text-xs">
                             Flagged
                           </span>
                         )}
@@ -115,7 +115,7 @@ export function TransactionHistory() {
                       {transaction.type === 'deposit' ? '+' : '-'}
                       ${transaction.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </p>
-                    <p className="text-xs text-gray-500 capitalize">{transaction.type}</p>
+                    <p className="text-xs text-slate-500 capitalize">{transaction.type}</p>
                   </div>
                 </div>
               </motion.div>

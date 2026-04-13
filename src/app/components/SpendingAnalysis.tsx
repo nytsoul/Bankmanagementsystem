@@ -33,7 +33,7 @@ export function SpendingAnalysis() {
 
   const transactionTypes = [
     { name: 'Deposits', value: totalDeposits, color: '#10b981' },
-    { name: 'Withdrawals', value: totalWithdrawals, color: '#ef4444' },
+    { name: 'Withdrawals', value: totalWithdrawals, color: '#f43f5e' },
   ];
 
   const stats = [
@@ -41,37 +41,37 @@ export function SpendingAnalysis() {
       icon: TrendingUp,
       label: 'Total Deposits',
       value: `$${totalDeposits.toLocaleString()}`,
-      color: 'text-green-600',
-      bg: 'bg-green-50',
+      color: 'text-emerald-600',
+      bg: 'bg-emerald-50',
     },
     {
       icon: TrendingDown,
       label: 'Total Withdrawals',
       value: `$${totalWithdrawals.toLocaleString()}`,
-      color: 'text-red-600',
-      bg: 'bg-red-50',
+      color: 'text-rose-600',
+      bg: 'bg-rose-50',
     },
     {
       icon: DollarSign,
       label: 'Net Change',
       value: `$${netChange.toLocaleString()}`,
-      color: netChange >= 0 ? 'text-green-600' : 'text-red-600',
-      bg: netChange >= 0 ? 'bg-green-50' : 'bg-red-50',
+      color: netChange >= 0 ? 'text-emerald-600' : 'text-rose-600',
+      bg: netChange >= 0 ? 'bg-emerald-50' : 'bg-rose-50',
     },
     {
       icon: Calendar,
       label: 'Total Transactions',
       value: customerTransactions.length,
-      color: 'text-blue-600',
-      bg: 'bg-blue-50',
+      color: 'text-sky-600',
+      bg: 'bg-sky-50',
     },
   ];
 
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-3xl text-gray-800 mb-2">Spending Analysis</h1>
-        <p className="text-gray-600">Track your financial activity</p>
+        <h1 className="text-3xl text-slate-900 mb-2">Spending Analysis</h1>
+        <p className="text-slate-600">Track your financial activity</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -84,15 +84,15 @@ export function SpendingAnalysis() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
               whileHover={{ y: -4 }}
-              className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm hover:shadow-md transition-shadow"
+              className="bg-white/90 rounded-xl p-6 border border-sky-100 shadow-sm hover:shadow-md transition-shadow"
             >
               <div className="flex items-start justify-between mb-4">
                 <div className={`${stat.bg} p-3 rounded-lg`}>
                   <Icon className={`w-6 h-6 ${stat.color}`} />
                 </div>
               </div>
-              <p className="text-sm text-gray-600 mb-2">{stat.label}</p>
-              <p className="text-2xl text-gray-800">{stat.value}</p>
+              <p className="text-sm text-slate-600 mb-2">{stat.label}</p>
+              <p className="text-2xl text-slate-900">{stat.value}</p>
             </motion.div>
           );
         })}
@@ -103,9 +103,9 @@ export function SpendingAnalysis() {
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.4 }}
-          className="bg-white rounded-xl border border-gray-200 p-6"
+          className="bg-white/90 rounded-xl border border-sky-100 p-6"
         >
-          <h3 className="text-lg text-gray-800 mb-6">Monthly Activity</h3>
+          <h3 className="text-lg text-slate-900 mb-6">Monthly Activity</h3>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={last6Months}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -119,7 +119,7 @@ export function SpendingAnalysis() {
                 }}
               />
               <Bar dataKey="deposits" fill="#10b981" radius={[8, 8, 0, 0]} />
-              <Bar dataKey="withdrawals" fill="#ef4444" radius={[8, 8, 0, 0]} />
+              <Bar dataKey="withdrawals" fill="#f43f5e" radius={[8, 8, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </motion.div>
@@ -128,9 +128,9 @@ export function SpendingAnalysis() {
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.5 }}
-          className="bg-white rounded-xl border border-gray-200 p-6"
+          className="bg-white/90 rounded-xl border border-sky-100 p-6"
         >
-          <h3 className="text-lg text-gray-800 mb-6">Transaction Distribution</h3>
+          <h3 className="text-lg text-slate-900 mb-6">Transaction Distribution</h3>
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie
@@ -159,12 +159,12 @@ export function SpendingAnalysis() {
 
           <div className="mt-6 space-y-2">
             {transactionTypes.map((type) => (
-              <div key={type.name} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div key={type.name} className="flex items-center justify-between p-3 bg-sky-50/70 rounded-lg">
                 <div className="flex items-center gap-3">
                   <div className="w-3 h-3 rounded-full" style={{ backgroundColor: type.color }}></div>
-                  <span className="text-sm text-gray-700">{type.name}</span>
+                  <span className="text-sm text-slate-700">{type.name}</span>
                 </div>
-                <span className="text-sm text-gray-800">${type.value.toLocaleString()}</span>
+                <span className="text-sm text-slate-900">${type.value.toLocaleString()}</span>
               </div>
             ))}
           </div>

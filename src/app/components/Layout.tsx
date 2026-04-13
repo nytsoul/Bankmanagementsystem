@@ -47,16 +47,16 @@ export function Layout({ children }: LayoutProps) {
       ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-sky-50 via-emerald-50 to-white">
       <div className="flex">
         <motion.aside
           initial={{ x: -280 }}
           animate={{ x: 0 }}
-          className="w-64 bg-white border-r border-gray-200 min-h-screen fixed left-0 top-0"
+          className="w-64 bg-white/85 backdrop-blur-xl border-r border-sky-100 min-h-screen fixed left-0 top-0"
         >
-          <div className="p-6 border-b border-gray-200">
-            <h2 className="text-xl text-gray-800">SecureBank</h2>
-            <p className="text-sm text-gray-500 mt-1">
+          <div className="p-6 border-b border-sky-100">
+            <h2 className="text-xl text-slate-900">SecureBank</h2>
+            <p className="text-sm text-slate-500 mt-1">
               {currentUser?.role === 'admin' ? 'Admin Panel' : 'Customer Portal'}
             </p>
           </div>
@@ -73,8 +73,8 @@ export function Layout({ children }: LayoutProps) {
                   whileHover={{ x: 4 }}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg mb-2 transition-colors ${
                     isActive
-                      ? 'bg-blue-50 text-blue-600'
-                      : 'text-gray-700 hover:bg-gray-50'
+                      ? 'bg-teal-50 text-teal-700'
+                      : 'text-slate-700 hover:bg-sky-50'
                   }`}
                 >
                   <Icon className="w-5 h-5" />
@@ -84,16 +84,16 @@ export function Layout({ children }: LayoutProps) {
             })}
           </nav>
 
-          <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200">
+          <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-sky-100">
             <div className="mb-4 px-4">
-              <p className="text-sm text-gray-600">Logged in as</p>
-              <p className="text-sm text-gray-800">{currentUser?.username}</p>
+              <p className="text-sm text-slate-600">Logged in as</p>
+              <p className="text-sm text-slate-900">{currentUser?.username}</p>
             </div>
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={handleLogout}
-              className="w-full flex items-center gap-2 px-4 py-3 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
+              className="w-full flex items-center gap-2 px-4 py-3 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 transition-colors"
             >
               <LogOut className="w-5 h-5" />
               <span>Logout</span>
@@ -101,8 +101,12 @@ export function Layout({ children }: LayoutProps) {
           </div>
         </motion.aside>
 
-        <main className="flex-1 ml-64 p-8">
-          {children}
+        <main className="flex-1 ml-64 p-8 relative">
+          <div className="pointer-events-none absolute -top-24 right-0 h-80 w-80 rounded-full bg-gradient-to-br from-sky-200/50 to-emerald-200/50 blur-3xl" />
+          <div className="pointer-events-none absolute bottom-0 left-10 h-72 w-72 rounded-full bg-gradient-to-tr from-emerald-200/40 to-sky-200/40 blur-3xl" />
+          <div className="relative">
+            {children}
+          </div>
         </main>
       </div>
     </div>

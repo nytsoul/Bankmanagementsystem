@@ -20,21 +20,25 @@ public class DevUserSeeder {
             @Value("${seed.admin.first-name}") String firstName,
             @Value("${seed.admin.last-name}") String lastName) {
         return args -> {
-            if (userRepository.count() > 0 || userRepository.existsByEmail(adminEmail)) {
-                return;
+            try {
+                if (userRepository.count() > 0 || userRepository.existsByEmail(adminEmail)) {
+                    return;
+                }
+
+                User admin = User.builder()
+                        .email(adminEmail)
+                        .password(passwordEncoder.encode(adminPassword))
+                        .firstName(firstName)
+                        .lastName(lastName)
+                        .role(User.UserRole.ADMIN)
+                        .isActive(true)
+                        .build();
+
+                userRepository.save(admin);
+                System.out.println("Seeded default admin user: " + adminEmail);
+            } catch (RuntimeException ex) {
+                System.out.println("Skipping seed: MongoDB not available yet.");
             }
-
-            User admin = User.builder()
-                    .email(adminEmail)
-                    .password(passwordEncoder.encode(adminPassword))
-                    .firstName(firstName)
-                    .lastName(lastName)
-                    .role(User.UserRole.ADMIN)
-                    .isActive(true)
-                    .build();
-
-            userRepository.save(admin);
-            System.out.println("Seeded default admin user: " + adminEmail);
         };
     }
 }

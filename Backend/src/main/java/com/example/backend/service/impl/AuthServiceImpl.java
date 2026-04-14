@@ -9,6 +9,7 @@ import com.example.backend.repository.UserRepository;
 import com.example.backend.service.AuthService;
 import com.example.backend.service.JwtService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -23,6 +24,9 @@ public class AuthServiceImpl implements AuthService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Value("${admin.registration.key:}")
+    private String adminRegistrationKey;
 
     @Override
     public LoginResponse login(LoginRequest request) {
@@ -55,6 +59,21 @@ public class AuthServiceImpl implements AuthService {
             throw new IllegalArgumentException("Password is required");
         }
 
+        boolean wantsAdmin = "ADMIN".equalsIgnoreCase(userDTO.getRole());
+        User.UserRole assignedRole = User.UserRole.CUSTOMER;
+
+        if (wantsAdmin) {
+            if (adminRegistrationKey == null || adminRegistrationKey.isBlank()) {
+                throw new IllegalArgumentException("Admin registration is disabled");
+            }
+
+            if (!adminRegistrationKey.equals(userDTO.getAdminRegistrationKey())) {
+                throw new IllegalArgumentException("Invalid admin registration key");
+            }
+
+            assignedRole = User.UserRole.ADMIN;
+        }
+
         User user = User.builder()
                 .email(userDTO.getEmail())
                 .password(passwordEncoder.encode(userDTO.getPassword()))
@@ -65,7 +84,7 @@ public class AuthServiceImpl implements AuthService {
                 .city(userDTO.getCity())
                 .state(userDTO.getState())
                 .zipCode(userDTO.getZipCode())
-                .role(User.UserRole.CUSTOMER)
+                .role(assignedRole)
                 .isActive(true)
                 .build();
 

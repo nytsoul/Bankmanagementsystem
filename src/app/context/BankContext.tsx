@@ -1,5 +1,14 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import type { User, Customer, Account, Transaction, ScheduledTransaction } from '../types';
+import type {
+  User,
+  Customer,
+  Account,
+  Transaction,
+  ScheduledTransaction,
+  UserProfile,
+  AdminActivity,
+  UserRole,
+} from '../types';
 import {
   authService,
   accountService,
@@ -10,10 +19,14 @@ import {
 
 interface BankContextType {
   currentUser: User | null;
+  users: UserProfile[];
   customers: Customer[];
   accounts: Account[];
   transactions: Transaction[];
   scheduledTransactions: ScheduledTransaction[];
+  activityLog: AdminActivity[];
+  logAdminActivity: (entry: Omit<AdminActivity, 'id' | 'timestamp' | 'actor'>) => void;
+  clearActivityLog: () => void;
   login: (email: string, password: string) => Promise<boolean>;
   register: (payload: {
     email: string;
@@ -22,10 +35,20 @@ interface BankContextType {
     password: string;
     phoneNumber?: string;
   }) => Promise<boolean>;
+  registerAdmin: (payload: {
+    email: string;
+    firstName: string;
+    lastName: string;
+    password: string;
+    phoneNumber?: string;
+    adminRegistrationKey: string;
+  }) => Promise<boolean>;
   logout: () => void;
-  addCustomer: (customer: Omit<Customer, 'id' | 'createdAt'> & { password: string }) => Promise<void>;
+  addCustomer: (customer: Omit<Customer, 'id' | 'createdAt' | 'isActive'> & { password: string }) => Promise<void>;
   updateCustomer: (id: string, customer: Partial<Customer>) => Promise<void>;
   deleteCustomer: (id: string) => Promise<void>;
+  setCustomerStatus: (id: string, isActive: boolean) => Promise<void>;
+  updateUserRole: (id: string, role: UserRole) => Promise<void>;
   addAccount: (account: Omit<Account, 'id' | 'accountNumber' | 'createdAt'>) => Promise<void>;
   closeAccount: (accountId: string) => Promise<void>;
   freezeAccount: (accountId: string) => Promise<void>;
@@ -41,10 +64,14 @@ const BankContext = createContext<BankContextType | undefined>(undefined);
 
 export function BankProvider({ children }: { children: ReactNode }) {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [users, setUsers] = useState<UserProfile[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [scheduledTransactions, setScheduledTransactions] = useState<ScheduledTransaction[]>([]);
+  const [activityLog, setActivityLog] = useState<AdminActivity[]>([]);
+
+  const activityStorageKey = 'adminActivityLog';
 
   const mapRole = (role?: string): User['role'] => {
     return role?.toLowerCase() === 'admin' ? 'admin' : 'customer';
@@ -82,6 +109,22 @@ export function BankProvider({ children }: { children: ReactNode }) {
     phone: user.phoneNumber || '',
     address: user.address || '',
     createdAt: user.createdAt ? new Date(user.createdAt).toISOString() : new Date().toISOString(),
+    isActive: user.isActive !== false,
+  });
+
+  const mapUserDtoToProfile = (user: any): UserProfile => ({
+    id: user.id,
+    email: user.email || '',
+    firstName: user.firstName || '',
+    lastName: user.lastName || '',
+    phoneNumber: user.phoneNumber || '',
+    role: mapRole(user.role),
+    address: user.address || '',
+    city: user.city || '',
+    state: user.state || '',
+    zipCode: user.zipCode || '',
+    isActive: user.isActive !== false,
+    createdAt: user.createdAt ? new Date(user.createdAt).toISOString() : undefined,
   });
 
   const mapAccountDtoToAccount = (account: any): Account => ({
@@ -126,6 +169,37 @@ export function BankProvider({ children }: { children: ReactNode }) {
     };
   };
 
+  const syncUsersAndCustomers = (nextUsers: UserProfile[]) => {
+    setUsers(nextUsers);
+    setCustomers(nextUsers.filter((user) => user.role === 'customer').map(mapUserToCustomer));
+  };
+
+  const recordActivity = (entry: Omit<AdminActivity, 'id' | 'timestamp' | 'actor'>) => {
+    if (currentUser?.role !== 'admin') return;
+
+    const newEntry: AdminActivity = {
+      id: `act_${Date.now()}_${Math.random().toString(16).slice(2, 8)}`,
+      actor: currentUser?.username || 'admin',
+      timestamp: new Date().toISOString(),
+      ...entry,
+    };
+
+    setActivityLog((prev) => {
+      const updated = [newEntry, ...prev].slice(0, 300);
+      localStorage.setItem(activityStorageKey, JSON.stringify(updated));
+      return updated;
+    });
+  };
+
+  const logAdminActivity = (entry: Omit<AdminActivity, 'id' | 'timestamp' | 'actor'>) => {
+    recordActivity(entry);
+  };
+
+  const clearActivityLog = () => {
+    localStorage.removeItem(activityStorageKey);
+    setActivityLog([]);
+  };
+
   const loadAllData = async () => {
     try {
       const [usersResponse, accountsResponse, transactionsResponse, scheduledResponse] = await Promise.all([
@@ -136,17 +210,15 @@ export function BankProvider({ children }: { children: ReactNode }) {
       ]);
 
       const mappedAccounts = (accountsResponse || []).map(mapAccountDtoToAccount);
-      const mappedCustomers = (usersResponse || [])
-        .filter((user: any) => mapRole(user.role) === 'customer')
-        .map(mapUserToCustomer);
-
-      setCustomers(mappedCustomers);
+      const mappedUsers = (usersResponse || []).map(mapUserDtoToProfile);
+      syncUsersAndCustomers(mappedUsers);
       setAccounts(mappedAccounts);
       setTransactions((transactionsResponse || []).map(mapTransactionDtoToTransaction));
       setScheduledTransactions(
         (scheduledResponse || []).map((scheduled: any) => mapScheduledDtoToScheduled(scheduled, mappedAccounts))
       );
     } catch (error) {
+      setUsers([]);
       setCustomers([]);
       setAccounts([]);
       setTransactions([]);
@@ -161,8 +233,21 @@ export function BankProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const loadActivityLog = () => {
+    const storedLog = localStorage.getItem(activityStorageKey);
+    if (storedLog) {
+      try {
+        const parsed = JSON.parse(storedLog) as AdminActivity[];
+        setActivityLog(parsed);
+      } catch {
+        setActivityLog([]);
+      }
+    }
+  };
+
   useEffect(() => {
     loadFromStorage();
+    loadActivityLog();
   }, []);
 
   useEffect(() => {
@@ -206,17 +291,42 @@ export function BankProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const registerAdmin = async (payload: {
+    email: string;
+    firstName: string;
+    lastName: string;
+    password: string;
+    phoneNumber?: string;
+    adminRegistrationKey: string;
+  }): Promise<boolean> => {
+    try {
+      await authService.register({
+        email: payload.email,
+        firstName: payload.firstName,
+        lastName: payload.lastName,
+        phoneNumber: payload.phoneNumber,
+        password: payload.password,
+        role: 'ADMIN',
+        adminRegistrationKey: payload.adminRegistrationKey,
+      });
+      return await login(payload.email, payload.password);
+    } catch (error) {
+      return false;
+    }
+  };
+
   const logout = () => {
     authService.logout();
     setCurrentUser(null);
     localStorage.removeItem('currentUser');
+    setUsers([]);
     setCustomers([]);
     setAccounts([]);
     setTransactions([]);
     setScheduledTransactions([]);
   };
 
-  const addCustomer = async (customerData: Omit<Customer, 'id' | 'createdAt'> & { password: string }) => {
+  const addCustomer = async (customerData: Omit<Customer, 'id' | 'createdAt' | 'isActive'> & { password: string }) => {
     const nameParts = customerData.name.trim().split(' ');
     const [firstName, ...lastParts] = nameParts;
     const lastName = lastParts.join(' ');
@@ -231,7 +341,13 @@ export function BankProvider({ children }: { children: ReactNode }) {
     });
 
     if (response) {
-      setCustomers([...customers, mapUserToCustomer(response)]);
+      const newUser = mapUserDtoToProfile(response);
+      syncUsersAndCustomers([...users, newUser]);
+      recordActivity({
+        action: 'Customer created',
+        detail: `${newUser.firstName || newUser.email} (${newUser.email})`,
+        category: 'customer',
+      });
     }
   };
 
@@ -249,14 +365,55 @@ export function BankProvider({ children }: { children: ReactNode }) {
     });
 
     if (response) {
-      setCustomers(customers.map(c => c.id === id ? mapUserToCustomer(response) : c));
+      const updatedUser = mapUserDtoToProfile(response);
+      const nextUsers = users.map((user) => user.id === id ? updatedUser : user);
+      syncUsersAndCustomers(nextUsers);
+      recordActivity({
+        action: 'Customer updated',
+        detail: `${updatedUser.firstName || updatedUser.email} (${updatedUser.email})`,
+        category: 'customer',
+      });
     }
   };
 
   const deleteCustomer = async (id: string) => {
+    const customer = customers.find(c => c.id === id);
     await userService.deleteUser(id);
-    setCustomers(customers.filter(c => c.id !== id));
+    syncUsersAndCustomers(users.filter(user => user.id !== id));
     setAccounts(accounts.filter(a => a.customerId !== id));
+    recordActivity({
+      action: 'Customer deleted',
+      detail: customer ? `${customer.name} (${customer.email})` : id,
+      category: 'customer',
+    });
+  };
+
+  const setCustomerStatus = async (id: string, isActive: boolean) => {
+    const response = await userService.updateUser(id, { isActive });
+    if (response) {
+      const updatedUser = mapUserDtoToProfile(response);
+      const nextUsers = users.map((user) => user.id === id ? updatedUser : user);
+      syncUsersAndCustomers(nextUsers);
+      recordActivity({
+        action: isActive ? 'Customer enabled' : 'Customer disabled',
+        detail: `${updatedUser.firstName || updatedUser.email} (${updatedUser.email})`,
+        category: 'customer',
+      });
+    }
+  };
+
+  const updateUserRole = async (id: string, role: UserRole) => {
+    const response = await userService.updateUser(id, { role: role.toUpperCase() });
+    if (response) {
+      const updatedUser = mapUserDtoToProfile(response);
+      const nextUsers = users.map((user) => user.id === id ? updatedUser : user);
+      syncUsersAndCustomers(nextUsers);
+      recordActivity({
+        action: 'Role updated',
+        detail: `${updatedUser.email} -> ${updatedUser.role.toUpperCase()}`,
+        category: 'role',
+      });
+    }
   };
 
   const addAccount = async (accountData: Omit<Account, 'id' | 'accountNumber' | 'createdAt'>) => {
@@ -269,26 +426,51 @@ export function BankProvider({ children }: { children: ReactNode }) {
 
     const response = await accountService.createAccount(accountData.customerId, payload);
     if (response) {
-      setAccounts([...accounts, mapAccountDtoToAccount(response)]);
+      const mappedAccount = mapAccountDtoToAccount(response);
+      setAccounts([...accounts, mappedAccount]);
+      const customer = customers.find(c => c.id === mappedAccount.customerId);
+      recordActivity({
+        action: 'Account opened',
+        detail: `${mappedAccount.accountNumber} for ${customer?.name || mappedAccount.customerId}`,
+        category: 'account',
+      });
     }
   };
 
   const closeAccount = async (accountId: string) => {
+    const account = accounts.find(a => a.id === accountId);
     await accountService.deleteAccount(accountId);
     setAccounts(accounts.filter(a => a.id !== accountId));
+    recordActivity({
+      action: 'Account closed',
+      detail: account ? account.accountNumber : accountId,
+      category: 'account',
+    });
   };
 
   const freezeAccount = async (accountId: string) => {
     const response = await accountService.updateAccount(accountId, { isActive: false });
     if (response) {
-      setAccounts(accounts.map(a => a.id === accountId ? mapAccountDtoToAccount(response) : a));
+      const updated = mapAccountDtoToAccount(response);
+      setAccounts(accounts.map(a => a.id === accountId ? updated : a));
+      recordActivity({
+        action: 'Account frozen',
+        detail: updated.accountNumber,
+        category: 'account',
+      });
     }
   };
 
   const unfreezeAccount = async (accountId: string) => {
     const response = await accountService.updateAccount(accountId, { isActive: true });
     if (response) {
-      setAccounts(accounts.map(a => a.id === accountId ? mapAccountDtoToAccount(response) : a));
+      const updated = mapAccountDtoToAccount(response);
+      setAccounts(accounts.map(a => a.id === accountId ? updated : a));
+      recordActivity({
+        action: 'Account unfrozen',
+        detail: updated.accountNumber,
+        category: 'account',
+      });
     }
   };
 
@@ -398,16 +580,23 @@ export function BankProvider({ children }: { children: ReactNode }) {
     <BankContext.Provider
       value={{
         currentUser,
+        users,
         customers,
         accounts,
         transactions,
         scheduledTransactions,
+        activityLog,
+        logAdminActivity,
+        clearActivityLog,
         login,
         register,
+        registerAdmin,
         logout,
         addCustomer,
         updateCustomer,
         deleteCustomer,
+        setCustomerStatus,
+        updateUserRole,
         addAccount,
         closeAccount,
         freezeAccount,

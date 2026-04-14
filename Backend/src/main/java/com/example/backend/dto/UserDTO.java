@@ -20,6 +20,8 @@ public class UserDTO {
     private String lastName;
     private String phoneNumber;
     private String role;
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    private String adminRegistrationKey;
     private String address;
     private String city;
     private String state;

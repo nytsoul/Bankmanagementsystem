@@ -1,6 +1,8 @@
 package com.example.backend.exception;
 
 import jakarta.servlet.http.HttpServletRequest;
+import com.mongodb.MongoTimeoutException;
+import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -42,11 +44,22 @@ public class GlobalExceptionHandler {
         return buildError(HttpStatus.CONFLICT, "Duplicate value already exists", request.getRequestURI());
     }
 
+    @ExceptionHandler({MongoTimeoutException.class, DataAccessResourceFailureException.class})
+    public ResponseEntity<Map<String, Object>> handleMongoUnavailable(
+            Exception ex,
+            HttpServletRequest request) {
+        return buildError(
+                HttpStatus.SERVICE_UNAVAILABLE,
+                "Database is temporarily unavailable. Check MongoDB Atlas network access/IP allowlist.",
+                request.getRequestURI());
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGeneric(
             Exception ex,
             HttpServletRequest request) {
-        return buildError(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage(), request.getRequestURI());
+        String message = ex.getMessage() == null ? "Unexpected server error" : ex.getMessage();
+        return buildError(HttpStatus.INTERNAL_SERVER_ERROR, message, request.getRequestURI());
     }
 
     private ResponseEntity<Map<String, Object>> buildError(HttpStatus status, String message, String path) {

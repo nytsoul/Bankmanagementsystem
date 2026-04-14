@@ -39,6 +39,9 @@ tmp/
 temp/
 *.tmp
 
+# Local tooling artifacts
+.tools/
+
 # OS files
 .DS_Store
 .DS_Store?

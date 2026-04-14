@@ -11,7 +11,7 @@ export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRout
   const { currentUser } = useBank();
 
   if (!currentUser) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/login" replace />;
   }
 
   if (requireAdmin && currentUser.role !== 'admin') {

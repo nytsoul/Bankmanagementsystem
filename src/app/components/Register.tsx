@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { toast } from 'sonner';
 import { motion } from 'motion/react';
-import { ArrowLeft, ArrowRight, Building2, KeyRound, Mail, Shield, User } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Building2, CheckCircle2, KeyRound, Mail, Shield, User } from 'lucide-react';
 import { useBank } from '../context/BankContext';
 
 export function Register() {
@@ -42,140 +42,162 @@ export function Register() {
   };
 
   return (
-    <div className="min-h-screen relative flex items-center justify-center bg-[radial-gradient(circle_at_90%_20%,#bae6fd_0%,transparent_30%),radial-gradient(circle_at_10%_80%,#bbf7d0_0%,transparent_35%),linear-gradient(150deg,#f0fdfa_0%,#f8fafc_55%,#ecfeff_100%)] p-4 overflow-hidden">
-      <div className="pointer-events-none absolute top-14 right-12 h-28 w-28 rounded-full border border-cyan-200/70 bg-white/60 backdrop-blur-xl" />
-      <div className="pointer-events-none absolute bottom-20 left-8 h-24 w-24 rounded-2xl border border-emerald-200/60 bg-white/60 backdrop-blur-xl" />
+    <div className="min-h-screen relative flex items-center justify-center bg-[radial-gradient(circle_at_86%_18%,#bae6fd_0%,transparent_32%),radial-gradient(circle_at_14%_80%,#bbf7d0_0%,transparent_38%),linear-gradient(150deg,#f0fdfa_0%,#f8fafc_55%,#ecfeff_100%)] p-4 overflow-hidden">
+      <div className="pointer-events-none absolute top-16 right-10 h-28 w-28 rounded-full border border-cyan-200/70 bg-white/60 backdrop-blur-xl" />
+      <div className="pointer-events-none absolute bottom-16 left-10 h-24 w-24 rounded-2xl border border-emerald-200/60 bg-white/60 backdrop-blur-xl" />
 
       <motion.div
-        initial={{ opacity: 0, y: 22 }}
+        initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.55 }}
-        className="relative w-full max-w-2xl"
+        className="relative w-full max-w-5xl"
       >
-        <div className="bg-white/82 backdrop-blur-xl rounded-3xl shadow-2xl p-8 md:p-10 border border-cyan-100">
-          <div className="flex items-center justify-between mb-6">
-            <div className="inline-flex items-center gap-2 rounded-full bg-cyan-100 px-4 py-2 text-cyan-800 text-sm">
-              <Building2 className="w-4 h-4" />
-              Open your account
+        <div className="grid gap-6 rounded-3xl border border-cyan-100 bg-white/85 p-6 shadow-2xl backdrop-blur-xl md:grid-cols-[1fr_1.1fr] md:p-10">
+          <div className="flex h-full flex-col justify-between rounded-2xl bg-white/70 p-6 md:p-8">
+            <div className="flex items-center gap-3">
+              <div className="rounded-2xl bg-emerald-100 p-3 text-emerald-700">
+                <Shield className="h-6 w-6" />
+              </div>
+              <div>
+                <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Open account</p>
+                <p className="text-2xl font-semibold text-slate-900">Grow with clarity</p>
+              </div>
             </div>
-            <div className="bg-cyan-600 p-3 rounded-2xl shadow-lg shadow-cyan-600/30">
-              <Shield className="w-6 h-6 text-white" />
+
+            <div className="mt-8 space-y-4 text-sm text-slate-600">
+              <div className="flex items-center gap-3">
+                <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                <span>Unified dashboard for cards, savings, and transfers</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                <span>Clear analytics for everyday spending habits</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                <span>Secure onboarding with full identity coverage</span>
+              </div>
+            </div>
+
+            <div className="mt-10 rounded-2xl border border-emerald-100 bg-emerald-50/70 p-4 text-sm text-emerald-800">
+              <div className="flex items-center gap-2">
+                <Building2 className="h-4 w-4" />
+                Join thousands of customers managing money in minutes.
+              </div>
             </div>
           </div>
 
-          <h1 className="text-3xl md:text-4xl mb-2 text-slate-900">
-            <span className="bg-gradient-to-r from-cyan-700 via-teal-700 to-emerald-700 bg-clip-text text-transparent">
-              Create your profile
-            </span>
-          </h1>
-          <p className="text-slate-600 mb-8">Register now to access transactions, analytics, and account controls.</p>
+          <div className="rounded-2xl bg-white/80 p-6 md:p-8">
+            <h1 className="text-3xl text-slate-900">Create your profile</h1>
+            <p className="mt-2 text-sm text-slate-600">Set up your SecureBank access in under two minutes.</p>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm mb-2 text-slate-700">First name</label>
-                <div className="relative">
-                  <User className="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
+            <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm mb-2 text-slate-700">First name</label>
+                  <div className="relative">
+                    <User className="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="text"
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      className="w-full pl-11 pr-4 py-3 bg-white/85 border border-cyan-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all"
+                      placeholder="Ava"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm mb-2 text-slate-700">Last name</label>
                   <input
                     type="text"
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
-                    className="w-full pl-11 pr-4 py-3 bg-white/80 border border-cyan-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all"
-                    placeholder="Ava"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    className="w-full px-4 py-3 bg-white/85 border border-cyan-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all"
+                    placeholder="Johnson"
                     required
                   />
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm mb-2 text-slate-700">Last name</label>
-                <input
-                  type="text"
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  className="w-full px-4 py-3 bg-white/80 border border-cyan-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all"
-                  placeholder="Johnson"
-                  required
-                />
-              </div>
-            </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm mb-2 text-slate-700">Email</label>
+                  <div className="relative">
+                    <Mail className="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="w-full pl-11 pr-4 py-3 bg-white/85 border border-cyan-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all"
+                      placeholder="you@example.com"
+                      required
+                    />
+                  </div>
+                </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm mb-2 text-slate-700">Email</label>
-                <div className="relative">
-                  <Mail className="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
+                <div>
+                  <label className="block text-sm mb-2 text-slate-700">Phone (optional)</label>
                   <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full pl-11 pr-4 py-3 bg-white/80 border border-cyan-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all"
-                    placeholder="you@example.com"
-                    required
+                    type="tel"
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(e.target.value)}
+                    className="w-full px-4 py-3 bg-white/85 border border-cyan-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all"
+                    placeholder="+1 555 123 4567"
                   />
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm mb-2 text-slate-700">Phone (optional)</label>
-                <input
-                  type="tel"
-                  value={phoneNumber}
-                  onChange={(e) => setPhoneNumber(e.target.value)}
-                  className="w-full px-4 py-3 bg-white/80 border border-cyan-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all"
-                  placeholder="+1 555 123 4567"
-                />
-              </div>
-            </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm mb-2 text-slate-700">Password</label>
+                  <div className="relative">
+                    <KeyRound className="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="w-full pl-11 pr-4 py-3 bg-white/85 border border-cyan-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all"
+                      placeholder="At least 6 characters"
+                      minLength={6}
+                      required
+                    />
+                  </div>
+                </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm mb-2 text-slate-700">Password</label>
-                <div className="relative">
-                  <KeyRound className="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
+                <div>
+                  <label className="block text-sm mb-2 text-slate-700">Confirm password</label>
                   <input
                     type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full pl-11 pr-4 py-3 bg-white/80 border border-cyan-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all"
-                    placeholder="At least 6 characters"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="w-full px-4 py-3 bg-white/85 border border-cyan-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all"
+                    placeholder="Repeat password"
                     minLength={6}
                     required
                   />
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm mb-2 text-slate-700">Confirm password</label>
-                <input
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full px-4 py-3 bg-white/80 border border-cyan-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all"
-                  placeholder="Repeat password"
-                  minLength={6}
-                  required
-                />
-              </div>
+              <motion.button
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.98 }}
+                type="submit"
+                className="w-full mt-2 bg-slate-900 text-white py-3 rounded-xl hover:bg-slate-800 transition-all flex items-center justify-center gap-2"
+              >
+                Create Account
+                <ArrowRight className="w-4 h-4" />
+              </motion.button>
+            </form>
+
+            <div className="mt-6 text-sm text-slate-600">
+              Already registered?
+              <Link to="/login" className="ml-2 inline-flex items-center gap-1 font-medium text-emerald-700 hover:text-emerald-800">
+                <ArrowLeft className="w-4 h-4" />
+                Back to login
+              </Link>
             </div>
-
-            <motion.button
-              whileHover={{ scale: 1.01 }}
-              whileTap={{ scale: 0.98 }}
-              type="submit"
-              className="w-full mt-2 bg-gradient-to-r from-cyan-600 via-teal-600 to-emerald-600 text-white py-3 rounded-xl hover:from-cyan-700 hover:to-emerald-700 transition-all flex items-center justify-center gap-2"
-            >
-              Create Account
-              <ArrowRight className="w-4 h-4" />
-            </motion.button>
-          </form>
-
-          <div className="mt-7 border-t border-cyan-100 pt-6 text-sm text-slate-600">
-            Already registered?
-            <Link to="/" className="ml-2 inline-flex items-center gap-1 font-medium text-cyan-700 hover:text-cyan-800">
-              <ArrowLeft className="w-4 h-4" />
-              Back to login
-            </Link>
           </div>
         </div>
       </motion.div>

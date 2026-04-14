@@ -8,10 +8,12 @@ import {
   CreditCard,
   ArrowLeftRight,
   History,
-  Settings,
   Calendar,
   TrendingUp,
-  AlertTriangle
+  AlertTriangle,
+  Bell,
+  ClipboardList,
+  ShieldCheck
 } from 'lucide-react';
 import { motion } from 'motion/react';
 
@@ -36,6 +38,9 @@ export function Layout({ children }: LayoutProps) {
         { icon: CreditCard, label: 'Accounts', path: '/accounts' },
         { icon: History, label: 'Transactions', path: '/transactions' },
         { icon: AlertTriangle, label: 'Fraud Detection', path: '/fraud' },
+        { icon: ShieldCheck, label: 'Role Management', path: '/roles' },
+        { icon: Bell, label: 'System Alerts', path: '/alerts' },
+        { icon: ClipboardList, label: 'Activity Log', path: '/activity' },
       ]
     : [
         { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },

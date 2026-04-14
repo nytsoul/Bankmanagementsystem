@@ -5,12 +5,18 @@ import { Login } from './components/Login';
 import { Register } from './components/Register';
 import { Layout } from './components/Layout';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { AdminLogin } from './components/AdminLogin';
+import { AdminRegister } from './components/AdminRegister';
+import { Landing } from './components/Landing';
 import { AdminDashboard } from './components/AdminDashboard';
 import { CustomerDashboard } from './components/CustomerDashboard';
 import { CustomerManagement } from './components/CustomerManagement';
 import { AccountManagement } from './components/AccountManagement';
 import { AllTransactions } from './components/AllTransactions';
 import { FraudDetection } from './components/FraudDetection';
+import { RoleManagement } from './components/RoleManagement';
+import { SystemAlerts } from './components/SystemAlerts';
+import { AdminActivityLog } from './components/AdminActivityLog';
 import { MyAccounts } from './components/MyAccounts';
 import { TransactionPanel } from './components/TransactionPanel';
 import { TransactionHistory } from './components/TransactionHistory';
@@ -32,7 +38,10 @@ export default function App() {
     <BankProvider>
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Login />} />
+          <Route path="/" element={<Landing />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/admin" element={<AdminLogin />} />
+          <Route path="/admin/register" element={<AdminRegister />} />
           <Route path="/register" element={<Register />} />
 
           <Route
@@ -85,6 +94,39 @@ export default function App() {
               <ProtectedRoute requireAdmin>
                 <Layout>
                   <FraudDetection />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/roles"
+            element={
+              <ProtectedRoute requireAdmin>
+                <Layout>
+                  <RoleManagement />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/alerts"
+            element={
+              <ProtectedRoute requireAdmin>
+                <Layout>
+                  <SystemAlerts />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/activity"
+            element={
+              <ProtectedRoute requireAdmin>
+                <Layout>
+                  <AdminActivityLog />
                 </Layout>
               </ProtectedRoute>
             }

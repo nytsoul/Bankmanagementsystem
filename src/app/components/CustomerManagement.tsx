@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { useBank } from '../context/BankContext';
 import { toast } from 'sonner';
-import { Plus, Edit, Trash2, X } from 'lucide-react';
+import { Ban, CheckCircle2, Plus, Edit, Shield, Trash2, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 export function CustomerManagement() {
-  const { customers, addCustomer, updateCustomer, deleteCustomer } = useBank();
+  const { customers, users, addCustomer, updateCustomer, deleteCustomer, setCustomerStatus } = useBank();
+  const activeCustomers = customers.filter(customer => customer.isActive).length;
+  const disabledCustomers = customers.length - activeCustomers;
   const [showModal, setShowModal] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<string | null>(null);
   const [formData, setFormData] = useState({
@@ -52,6 +54,13 @@ export function CustomerManagement() {
   };
 
   const handleDelete = async (id: string) => {
+    const isAdmin = users.find(user => user.id === id)?.role === 'admin';
+
+    if (isAdmin) {
+      toast.error('Admin accounts cannot be deleted');
+      return;
+    }
+
     if (confirm('Are you sure you want to delete this customer?')) {
       try {
         await deleteCustomer(id);
@@ -86,6 +95,21 @@ export function CustomerManagement() {
         </motion.button>
       </div>
 
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div className="bg-white/90 rounded-xl border border-sky-100 p-4">
+          <p className="text-sm text-slate-600">Total customers</p>
+          <p className="text-2xl text-slate-900 mt-1">{customers.length}</p>
+        </div>
+        <div className="bg-white/90 rounded-xl border border-emerald-100 p-4">
+          <p className="text-sm text-slate-600">Active customers</p>
+          <p className="text-2xl text-emerald-600 mt-1">{activeCustomers}</p>
+        </div>
+        <div className="bg-white/90 rounded-xl border border-rose-100 p-4">
+          <p className="text-sm text-slate-600">Disabled customers</p>
+          <p className="text-2xl text-rose-600 mt-1">{disabledCustomers}</p>
+        </div>
+      </div>
+
       <div className="bg-white/90 rounded-xl border border-sky-100 overflow-hidden">
         <table className="w-full">
           <thead className="bg-sky-50/70 border-b border-sky-100">
@@ -94,6 +118,8 @@ export function CustomerManagement() {
               <th className="px-6 py-4 text-left text-sm text-slate-600">Name</th>
               <th className="px-6 py-4 text-left text-sm text-slate-600">Email</th>
               <th className="px-6 py-4 text-left text-sm text-slate-600">Phone</th>
+              <th className="px-6 py-4 text-left text-sm text-slate-600">Status</th>
+              <th className="px-6 py-4 text-left text-sm text-slate-600">Role</th>
               <th className="px-6 py-4 text-left text-sm text-slate-600">Actions</th>
             </tr>
           </thead>
@@ -111,7 +137,24 @@ export function CustomerManagement() {
                 <td className="px-6 py-4 text-sm text-slate-600">{customer.email}</td>
                 <td className="px-6 py-4 text-sm text-slate-600">{customer.phone}</td>
                 <td className="px-6 py-4">
+                  <span className={`px-3 py-1 rounded-full text-xs ${customer.isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
+                    {customer.isActive ? 'Active' : 'Disabled'}
+                  </span>
+                </td>
+                <td className="px-6 py-4 text-sm text-slate-600">
+                  {users.find(user => user.id === customer.id)?.role.toUpperCase() || 'CUSTOMER'}
+                </td>
+                <td className="px-6 py-4">
                   <div className="flex items-center gap-2">
+                    <motion.button
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      onClick={() => setCustomerStatus(customer.id, !customer.isActive)}
+                      className={`p-2 rounded-lg transition-colors ${customer.isActive ? 'text-rose-600 hover:bg-rose-50' : 'text-emerald-600 hover:bg-emerald-50'}`}
+                      title={customer.isActive ? 'Disable customer' : 'Enable customer'}
+                    >
+                      {customer.isActive ? <Ban className="w-4 h-4" /> : <CheckCircle2 className="w-4 h-4" />}
+                    </motion.button>
                     <motion.button
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.9 }}
@@ -119,6 +162,18 @@ export function CustomerManagement() {
                       className="p-2 text-teal-600 hover:bg-teal-50 rounded-lg transition-colors"
                     >
                       <Edit className="w-4 h-4" />
+                    </motion.button>
+                    <motion.button
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      onClick={() => {
+                        const isAdmin = users.find(user => user.id === customer.id)?.role === 'admin';
+                        toast.info(isAdmin ? 'Already admin' : 'Promote in role management tab');
+                      }}
+                      className="p-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                      title="Manage role in Role Management"
+                    >
+                      <Shield className="w-4 h-4" />
                     </motion.button>
                     <motion.button
                       whileHover={{ scale: 1.1 }}

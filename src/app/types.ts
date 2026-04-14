@@ -21,6 +21,31 @@ export interface Customer {
   phone: string;
   address: string;
   createdAt: string;
+  isActive: boolean;
+}
+
+export interface UserProfile {
+  id: string;
+  email: string;
+  firstName?: string;
+  lastName?: string;
+  phoneNumber?: string;
+  role: UserRole;
+  address?: string;
+  city?: string;
+  state?: string;
+  zipCode?: string;
+  isActive: boolean;
+  createdAt?: string;
+}
+
+export interface AdminActivity {
+  id: string;
+  actor: string;
+  action: string;
+  detail: string;
+  category: 'customer' | 'account' | 'transaction' | 'fraud' | 'role' | 'system';
+  timestamp: string;
 }
 
 export interface Account {

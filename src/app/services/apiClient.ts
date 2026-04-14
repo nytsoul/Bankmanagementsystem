@@ -85,7 +85,7 @@ class ApiClient {
       return {} as T;
     } catch (error) {
       if (error instanceof TypeError) {
-        const networkError = new Error('Backend server is unreachable. Start backend and local MongoDB.');
+        const networkError = new Error('Backend server is unreachable. Start backend and verify MongoDB Atlas/network access.');
         console.error(`API Error [${method} ${endpoint}]:`, networkError);
         throw networkError;
       }
@@ -117,6 +117,8 @@ class ApiClient {
     city?: string;
     state?: string;
     zipCode?: string;
+    role?: string;
+    adminRegistrationKey?: string;
   }) {
     return this.request<any>('POST', '/auth/register', userData);
   }

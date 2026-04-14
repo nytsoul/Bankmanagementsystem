@@ -19,6 +19,8 @@ export const authService = {
     city?: string;
     state?: string;
     zipCode?: string;
+    role?: string;
+    adminRegistrationKey?: string;
   }) {
     return await apiClient.register(userData);
   },

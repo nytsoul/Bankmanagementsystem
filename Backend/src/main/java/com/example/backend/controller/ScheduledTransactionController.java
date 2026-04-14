@@ -20,24 +20,30 @@ public class ScheduledTransactionController {
         return ResponseEntity.ok(scheduledTransactionService.createScheduledTransaction(dto));
     }
 
+    @GetMapping
+    public ResponseEntity<List<ScheduledTransactionDTO>> getAllScheduledTransactions() {
+        return ResponseEntity.ok(scheduledTransactionService.getAllScheduledTransactions());
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<ScheduledTransactionDTO> getScheduledTransaction(@PathVariable String id) {
-        throw new RuntimeException("Implement getScheduledTransactionById with String ID");
+        return ResponseEntity.ok(scheduledTransactionService.getScheduledTransactionById(id));
     }
 
     @GetMapping("/account/{accountId}")
     public ResponseEntity<List<ScheduledTransactionDTO>> getAccountScheduledTransactions(@PathVariable String accountId) {
-        throw new RuntimeException("Implement getScheduledTransactionsByAccountId with String accountId");
+        return ResponseEntity.ok(scheduledTransactionService.getScheduledTransactionsByAccountId(accountId));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<ScheduledTransactionDTO> updateScheduledTransaction(@PathVariable String id, @RequestBody ScheduledTransactionDTO dto) {
-        throw new RuntimeException("Implement updateScheduledTransaction with String ID");
+        return ResponseEntity.ok(scheduledTransactionService.updateScheduledTransaction(id, dto));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteScheduledTransaction(@PathVariable String id) {
-        throw new RuntimeException("Implement deleteScheduledTransaction with String ID");
+        scheduledTransactionService.deleteScheduledTransaction(id);
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/process")

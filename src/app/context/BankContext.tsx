@@ -1,6 +1,12 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import type { User, Customer, Account, Transaction, ScheduledTransaction } from '../types';
-import { mockUsers, mockCustomers, mockAccounts, mockTransactions } from '../data/mockData';
+import {
+  authService,
+  accountService,
+  transactionService,
+  scheduledTransactionService,
+  userService,
+} from '../services';
 
 interface BankContextType {
   currentUser: User | null;
@@ -8,20 +14,27 @@ interface BankContextType {
   accounts: Account[];
   transactions: Transaction[];
   scheduledTransactions: ScheduledTransaction[];
-  login: (username: string, password: string) => boolean;
+  login: (email: string, password: string) => Promise<boolean>;
+  register: (payload: {
+    email: string;
+    firstName: string;
+    lastName: string;
+    password: string;
+    phoneNumber?: string;
+  }) => Promise<boolean>;
   logout: () => void;
-  addCustomer: (customer: Omit<Customer, 'id' | 'createdAt'>) => void;
-  updateCustomer: (id: string, customer: Partial<Customer>) => void;
-  deleteCustomer: (id: string) => void;
-  addAccount: (account: Omit<Account, 'id' | 'accountNumber' | 'createdAt'>) => void;
-  closeAccount: (accountId: string) => void;
-  freezeAccount: (accountId: string) => void;
-  unfreezeAccount: (accountId: string) => void;
-  deposit: (accountId: string, amount: number, description: string) => boolean;
-  withdraw: (accountId: string, amount: number, description: string) => boolean;
-  transfer: (fromAccountId: string, toAccountId: string, amount: number, description: string) => boolean;
-  addScheduledTransaction: (scheduledTx: Omit<ScheduledTransaction, 'id'>) => void;
-  calculateInterest: (accountId: string) => void;
+  addCustomer: (customer: Omit<Customer, 'id' | 'createdAt'> & { password: string }) => Promise<void>;
+  updateCustomer: (id: string, customer: Partial<Customer>) => Promise<void>;
+  deleteCustomer: (id: string) => Promise<void>;
+  addAccount: (account: Omit<Account, 'id' | 'accountNumber' | 'createdAt'>) => Promise<void>;
+  closeAccount: (accountId: string) => Promise<void>;
+  freezeAccount: (accountId: string) => Promise<void>;
+  unfreezeAccount: (accountId: string) => Promise<void>;
+  deposit: (accountId: string, amount: number, description: string) => Promise<boolean>;
+  withdraw: (accountId: string, amount: number, description: string) => Promise<boolean>;
+  transfer: (fromAccountId: string, toAccountId: string, amount: number, description: string) => Promise<boolean>;
+  addScheduledTransaction: (scheduledTx: Omit<ScheduledTransaction, 'id'>) => Promise<void>;
+  calculateInterest: (accountId: string) => Promise<void>;
 }
 
 const BankContext = createContext<BankContextType | undefined>(undefined);
@@ -33,214 +46,352 @@ export function BankProvider({ children }: { children: ReactNode }) {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [scheduledTransactions, setScheduledTransactions] = useState<ScheduledTransaction[]>([]);
 
-  useEffect(() => {
+  const mapRole = (role?: string): User['role'] => {
+    return role?.toLowerCase() === 'admin' ? 'admin' : 'customer';
+  };
+
+  const mapAccountType = (accountType?: string): Account['accountType'] => {
+    const normalized = accountType?.toUpperCase();
+    return normalized === 'SAVINGS' ? 'savings' : 'current';
+  };
+
+  const mapTransactionType = (transactionType?: string): Transaction['type'] => {
+    const normalized = transactionType?.toUpperCase();
+    if (normalized === 'WITHDRAWAL') return 'withdrawal';
+    if (normalized === 'TRANSFER') return 'transfer';
+    return 'deposit';
+  };
+
+  const mapFrequency = (recurrenceType?: string): ScheduledTransaction['frequency'] => {
+    const normalized = recurrenceType?.toUpperCase();
+    if (normalized === 'DAILY') return 'daily';
+    if (normalized === 'WEEKLY') return 'weekly';
+    return 'monthly';
+  };
+
+  const toRecurrenceType = (frequency: ScheduledTransaction['frequency']) => {
+    if (frequency === 'daily') return 'DAILY';
+    if (frequency === 'weekly') return 'WEEKLY';
+    return 'MONTHLY';
+  };
+
+  const mapUserToCustomer = (user: any): Customer => ({
+    id: user.id,
+    name: [user.firstName, user.lastName].filter(Boolean).join(' ') || user.email,
+    email: user.email || '',
+    phone: user.phoneNumber || '',
+    address: user.address || '',
+    createdAt: user.createdAt ? new Date(user.createdAt).toISOString() : new Date().toISOString(),
+  });
+
+  const mapAccountDtoToAccount = (account: any): Account => ({
+    id: account.id,
+    customerId: account.userId,
+    accountNumber: account.accountNumber,
+    accountType: mapAccountType(account.accountType),
+    balance: Number(account.balance || 0),
+    status: account.isActive === false ? 'frozen' : 'active',
+    interestRate: Number(account.interestRate || 0),
+    createdAt: account.createdAt ? new Date(account.createdAt).toISOString() : new Date().toISOString(),
+  });
+
+  const mapTransactionDtoToTransaction = (transaction: any): Transaction => ({
+    id: transaction.id,
+    accountId: transaction.accountId,
+    type: mapTransactionType(transaction.transactionType),
+    amount: Number(transaction.amount || 0),
+    timestamp: transaction.transactionDate
+      ? new Date(transaction.transactionDate).toISOString()
+      : new Date().toISOString(),
+    description: transaction.description || '',
+    isFlagged: Boolean(transaction.isFraudulent),
+  });
+
+  const mapScheduledDtoToScheduled = (
+    scheduled: any,
+    availableAccounts: Account[]
+  ): ScheduledTransaction => {
+    const toAccount = availableAccounts.find(acc => acc.accountNumber === scheduled.recipientAccount);
+    return {
+      id: scheduled.id,
+      accountId: scheduled.accountId,
+      toAccountId: toAccount?.id || '',
+      amount: Number(scheduled.amount || 0),
+      frequency: mapFrequency(scheduled.recurrenceType),
+      nextExecutionDate: scheduled.nextExecutionDate
+        ? new Date(scheduled.nextExecutionDate).toISOString()
+        : new Date(scheduled.scheduledDate || Date.now()).toISOString(),
+      isActive: String(scheduled.status || '').toUpperCase() === 'ACTIVE',
+      description: scheduled.description || '',
+    };
+  };
+
+  const loadAllData = async () => {
+    try {
+      const [usersResponse, accountsResponse, transactionsResponse, scheduledResponse] = await Promise.all([
+        userService.getUsers(),
+        accountService.getAccounts(),
+        transactionService.getTransactions(),
+        scheduledTransactionService.getAllScheduledTransactions(),
+      ]);
+
+      const mappedAccounts = (accountsResponse || []).map(mapAccountDtoToAccount);
+      const mappedCustomers = (usersResponse || [])
+        .filter((user: any) => mapRole(user.role) === 'customer')
+        .map(mapUserToCustomer);
+
+      setCustomers(mappedCustomers);
+      setAccounts(mappedAccounts);
+      setTransactions((transactionsResponse || []).map(mapTransactionDtoToTransaction));
+      setScheduledTransactions(
+        (scheduledResponse || []).map((scheduled: any) => mapScheduledDtoToScheduled(scheduled, mappedAccounts))
+      );
+    } catch (error) {
+      setCustomers([]);
+      setAccounts([]);
+      setTransactions([]);
+      setScheduledTransactions([]);
+    }
+  };
+
+  const loadFromStorage = () => {
     const storedUser = localStorage.getItem('currentUser');
     if (storedUser) {
       setCurrentUser(JSON.parse(storedUser));
     }
+  };
 
-    const storedCustomers = localStorage.getItem('customers');
-    setCustomers(storedCustomers ? JSON.parse(storedCustomers) : mockCustomers);
-
-    const storedAccounts = localStorage.getItem('accounts');
-    setAccounts(storedAccounts ? JSON.parse(storedAccounts) : mockAccounts);
-
-    const storedTransactions = localStorage.getItem('transactions');
-    setTransactions(storedTransactions ? JSON.parse(storedTransactions) : mockTransactions);
-
-    const storedScheduled = localStorage.getItem('scheduledTransactions');
-    setScheduledTransactions(storedScheduled ? JSON.parse(storedScheduled) : []);
+  useEffect(() => {
+    loadFromStorage();
   }, []);
 
   useEffect(() => {
-    localStorage.setItem('customers', JSON.stringify(customers));
-  }, [customers]);
+    if (!currentUser) return;
+    loadAllData();
+  }, [currentUser?.id]);
 
-  useEffect(() => {
-    localStorage.setItem('accounts', JSON.stringify(accounts));
-  }, [accounts]);
+  const login = async (email: string, password: string): Promise<boolean> => {
+    try {
+      const response = await authService.login(email, password);
+      if (!response?.user) return false;
 
-  useEffect(() => {
-    localStorage.setItem('transactions', JSON.stringify(transactions));
-  }, [transactions]);
+      const user: User = {
+        id: response.user.id,
+        username: response.user.email,
+        password: '',
+        role: mapRole(response.user.role),
+        customerId: response.user.id,
+      };
 
-  useEffect(() => {
-    localStorage.setItem('scheduledTransactions', JSON.stringify(scheduledTransactions));
-  }, [scheduledTransactions]);
-
-  const login = (username: string, password: string): boolean => {
-    const user = mockUsers.find(u => u.username === username && u.password === password);
-    if (user) {
       setCurrentUser(user);
       localStorage.setItem('currentUser', JSON.stringify(user));
       return true;
+    } catch (error) {
+      return false;
     }
-    return false;
+  };
+
+  const register = async (payload: {
+    email: string;
+    firstName: string;
+    lastName: string;
+    password: string;
+    phoneNumber?: string;
+  }): Promise<boolean> => {
+    try {
+      await authService.register(payload);
+      return await login(payload.email, payload.password);
+    } catch (error) {
+      return false;
+    }
   };
 
   const logout = () => {
+    authService.logout();
     setCurrentUser(null);
     localStorage.removeItem('currentUser');
+    setCustomers([]);
+    setAccounts([]);
+    setTransactions([]);
+    setScheduledTransactions([]);
   };
 
-  const addCustomer = (customerData: Omit<Customer, 'id' | 'createdAt'>) => {
-    const newCustomer: Customer = {
-      ...customerData,
-      id: `CUST${Date.now()}`,
-      createdAt: new Date().toISOString(),
-    };
-    setCustomers([...customers, newCustomer]);
+  const addCustomer = async (customerData: Omit<Customer, 'id' | 'createdAt'> & { password: string }) => {
+    const nameParts = customerData.name.trim().split(' ');
+    const [firstName, ...lastParts] = nameParts;
+    const lastName = lastParts.join(' ');
+
+    const response = await authService.register({
+      email: customerData.email,
+      firstName: firstName || customerData.name,
+      lastName: lastName || '',
+      phoneNumber: customerData.phone,
+      password: customerData.password,
+      address: customerData.address,
+    });
+
+    if (response) {
+      setCustomers([...customers, mapUserToCustomer(response)]);
+    }
   };
 
-  const updateCustomer = (id: string, updates: Partial<Customer>) => {
-    setCustomers(customers.map(c => c.id === id ? { ...c, ...updates } : c));
+  const updateCustomer = async (id: string, updates: Partial<Customer>) => {
+    const nameParts = updates.name ? updates.name.trim().split(' ') : [];
+    const [firstName, ...lastParts] = nameParts;
+    const lastName = lastParts.join(' ');
+
+    const response = await userService.updateUser(id, {
+      email: updates.email,
+      firstName: firstName || undefined,
+      lastName: lastName || undefined,
+      phoneNumber: updates.phone,
+      address: updates.address,
+    });
+
+    if (response) {
+      setCustomers(customers.map(c => c.id === id ? mapUserToCustomer(response) : c));
+    }
   };
 
-  const deleteCustomer = (id: string) => {
+  const deleteCustomer = async (id: string) => {
+    await userService.deleteUser(id);
     setCustomers(customers.filter(c => c.id !== id));
     setAccounts(accounts.filter(a => a.customerId !== id));
   };
 
-  const addAccount = (accountData: Omit<Account, 'id' | 'accountNumber' | 'createdAt'>) => {
-    const newAccount: Account = {
-      ...accountData,
-      id: `ACC${Date.now()}`,
-      accountNumber: `${Math.floor(1000000000 + Math.random() * 9000000000)}`,
-      createdAt: new Date().toISOString(),
+  const addAccount = async (accountData: Omit<Account, 'id' | 'accountNumber' | 'createdAt'>) => {
+    const payload = {
+      accountType: accountData.accountType === 'savings' ? 'SAVINGS' : 'CHECKING',
+      balance: accountData.balance,
+      interestRate: accountData.interestRate,
+      isActive: accountData.status === 'active',
     };
-    setAccounts([...accounts, newAccount]);
+
+    const response = await accountService.createAccount(accountData.customerId, payload);
+    if (response) {
+      setAccounts([...accounts, mapAccountDtoToAccount(response)]);
+    }
   };
 
-  const closeAccount = (accountId: string) => {
+  const closeAccount = async (accountId: string) => {
+    await accountService.deleteAccount(accountId);
     setAccounts(accounts.filter(a => a.id !== accountId));
   };
 
-  const freezeAccount = (accountId: string) => {
-    setAccounts(accounts.map(a => a.id === accountId ? { ...a, status: 'frozen' } : a));
+  const freezeAccount = async (accountId: string) => {
+    const response = await accountService.updateAccount(accountId, { isActive: false });
+    if (response) {
+      setAccounts(accounts.map(a => a.id === accountId ? mapAccountDtoToAccount(response) : a));
+    }
   };
 
-  const unfreezeAccount = (accountId: string) => {
-    setAccounts(accounts.map(a => a.id === accountId ? { ...a, status: 'active' } : a));
+  const unfreezeAccount = async (accountId: string) => {
+    const response = await accountService.updateAccount(accountId, { isActive: true });
+    if (response) {
+      setAccounts(accounts.map(a => a.id === accountId ? mapAccountDtoToAccount(response) : a));
+    }
   };
 
-  const detectFraud = (accountId: string, amount: number, type: TransactionType): boolean => {
-    const recentTransactions = transactions
-      .filter(t => t.accountId === accountId)
-      .filter(t => {
-        const txTime = new Date(t.timestamp).getTime();
-        const now = Date.now();
-        return now - txTime < 3600000;
+  const refreshAccountsAndTransactions = async () => {
+    const [accountsResponse, transactionsResponse] = await Promise.all([
+      accountService.getAccounts(),
+      transactionService.getTransactions(),
+    ]);
+
+    const mappedAccounts = (accountsResponse || []).map(mapAccountDtoToAccount);
+    setAccounts(mappedAccounts);
+    setTransactions((transactionsResponse || []).map(mapTransactionDtoToTransaction));
+  };
+
+  const deposit = async (accountId: string, amount: number, description: string): Promise<boolean> => {
+    try {
+      await transactionService.createTransaction({
+        accountId,
+        transactionType: 'DEPOSIT',
+        amount,
+        description,
       });
-
-    if (amount > 50000) return true;
-    if (recentTransactions.length > 5) return true;
-
-    return false;
-  };
-
-  const deposit = (accountId: string, amount: number, description: string): boolean => {
-    const account = accounts.find(a => a.id === accountId);
-    if (!account || account.status === 'frozen') return false;
-
-    const isFlagged = detectFraud(accountId, amount, 'deposit');
-
-    setAccounts(accounts.map(a =>
-      a.id === accountId ? { ...a, balance: a.balance + amount } : a
-    ));
-
-    const newTransaction: Transaction = {
-      id: `TXN${Date.now()}`,
-      accountId,
-      type: 'deposit',
-      amount,
-      timestamp: new Date().toISOString(),
-      description,
-      isFlagged,
-    };
-    setTransactions([...transactions, newTransaction]);
-    return true;
-  };
-
-  const withdraw = (accountId: string, amount: number, description: string): boolean => {
-    const account = accounts.find(a => a.id === accountId);
-    if (!account || account.status === 'frozen' || account.balance < amount) return false;
-
-    const isFlagged = detectFraud(accountId, amount, 'withdrawal');
-
-    setAccounts(accounts.map(a =>
-      a.id === accountId ? { ...a, balance: a.balance - amount } : a
-    ));
-
-    const newTransaction: Transaction = {
-      id: `TXN${Date.now()}`,
-      accountId,
-      type: 'withdrawal',
-      amount,
-      timestamp: new Date().toISOString(),
-      description,
-      isFlagged,
-    };
-    setTransactions([...transactions, newTransaction]);
-    return true;
-  };
-
-  const transfer = (fromAccountId: string, toAccountId: string, amount: number, description: string): boolean => {
-    const fromAccount = accounts.find(a => a.id === fromAccountId);
-    const toAccount = accounts.find(a => a.id === toAccountId);
-
-    if (!fromAccount || !toAccount || fromAccount.status === 'frozen' || fromAccount.balance < amount) {
+      await refreshAccountsAndTransactions();
+      return true;
+    } catch (error) {
       return false;
     }
-
-    const isFlagged = detectFraud(fromAccountId, amount, 'transfer');
-
-    setAccounts(accounts.map(a => {
-      if (a.id === fromAccountId) return { ...a, balance: a.balance - amount };
-      if (a.id === toAccountId) return { ...a, balance: a.balance + amount };
-      return a;
-    }));
-
-    const transferTransaction: Transaction = {
-      id: `TXN${Date.now()}`,
-      accountId: fromAccountId,
-      type: 'transfer',
-      amount,
-      toAccountId,
-      timestamp: new Date().toISOString(),
-      description,
-      isFlagged,
-    };
-    setTransactions([...transactions, transferTransaction]);
-    return true;
   };
 
-  const addScheduledTransaction = (scheduledTx: Omit<ScheduledTransaction, 'id'>) => {
-    const newScheduled: ScheduledTransaction = {
-      ...scheduledTx,
-      id: `SCH${Date.now()}`,
-    };
-    setScheduledTransactions([...scheduledTransactions, newScheduled]);
+  const withdraw = async (accountId: string, amount: number, description: string): Promise<boolean> => {
+    try {
+      await transactionService.createTransaction({
+        accountId,
+        transactionType: 'WITHDRAWAL',
+        amount,
+        description,
+      });
+      await refreshAccountsAndTransactions();
+      return true;
+    } catch (error) {
+      return false;
+    }
   };
 
-  const calculateInterest = (accountId: string) => {
+  const transfer = async (fromAccountId: string, toAccountId: string, amount: number, description: string): Promise<boolean> => {
+    const toAccount = accounts.find(a => a.id === toAccountId);
+    if (!toAccount) return false;
+
+    try {
+      await transactionService.createTransaction({
+        accountId: fromAccountId,
+        transactionType: 'TRANSFER',
+        amount,
+        description,
+        recipientAccount: toAccount.accountNumber,
+      });
+      await refreshAccountsAndTransactions();
+      return true;
+    } catch (error) {
+      return false;
+    }
+  };
+
+  const addScheduledTransaction = async (scheduledTx: Omit<ScheduledTransaction, 'id'>) => {
+    const toAccount = accounts.find(a => a.id === scheduledTx.toAccountId);
+    const scheduledDate = scheduledTx.nextExecutionDate || new Date().toISOString();
+
+    const response = await scheduledTransactionService.createScheduledTransaction({
+      accountId: scheduledTx.accountId,
+      description: scheduledTx.description,
+      amount: scheduledTx.amount,
+      scheduledDate,
+      recurrenceType: toRecurrenceType(scheduledTx.frequency),
+      recipientAccount: toAccount?.accountNumber,
+    });
+
+    if (response) {
+      setScheduledTransactions([
+        ...scheduledTransactions,
+        mapScheduledDtoToScheduled(response, accounts),
+      ]);
+    }
+  };
+
+  const calculateInterest = async (accountId: string) => {
     const account = accounts.find(a => a.id === accountId);
     if (!account || account.accountType !== 'savings') return;
 
     const interest = account.balance * (account.interestRate / 100);
-    setAccounts(accounts.map(a =>
-      a.id === accountId ? { ...a, balance: a.balance + interest } : a
-    ));
+    if (interest <= 0) return;
 
-    const interestTransaction: Transaction = {
-      id: `TXN${Date.now()}`,
-      accountId,
-      type: 'deposit',
-      amount: interest,
-      timestamp: new Date().toISOString(),
-      description: 'Interest credited',
-      isFlagged: false,
-    };
-    setTransactions([...transactions, interestTransaction]);
+    try {
+      await transactionService.createTransaction({
+        accountId,
+        transactionType: 'INTEREST',
+        amount: interest,
+        description: 'Interest credited',
+      });
+
+      await refreshAccountsAndTransactions();
+    } catch (error) {
+      return;
+    }
   };
 
   return (
@@ -252,6 +403,7 @@ export function BankProvider({ children }: { children: ReactNode }) {
         transactions,
         scheduledTransactions,
         login,
+        register,
         logout,
         addCustomer,
         updateCustomer,

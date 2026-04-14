@@ -16,13 +16,21 @@ public class AccountController {
     private AccountService accountService;
 
     @PostMapping
-    public ResponseEntity<AccountDTO> createAccount(@RequestBody AccountDTO accountDTO) {
-        return ResponseEntity.ok(accountService.createAccount(accountDTO, "1")); // TODO: Get userId from auth
+    public ResponseEntity<AccountDTO> createAccount(
+            @RequestBody AccountDTO accountDTO,
+            @RequestParam String userId
+    ) {
+        return ResponseEntity.ok(accountService.createAccount(accountDTO, userId));
+    }
+
+    @GetMapping
+    public ResponseEntity<List<AccountDTO>> getAllAccounts() {
+        return ResponseEntity.ok(accountService.getAllAccounts());
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<AccountDTO> getAccount(@PathVariable String id) {
-        return ResponseEntity.ok(accountService.getAccountByNumber(id));
+        return ResponseEntity.ok(accountService.getAccountById(id));
     }
 
     @GetMapping("/user/{userId}")
@@ -37,12 +45,12 @@ public class AccountController {
 
     @PutMapping("/{id}")
     public ResponseEntity<AccountDTO> updateAccount(@PathVariable String id, @RequestBody AccountDTO accountDTO) {
-        return ResponseEntity.ok(accountService.updateAccount(Long.parseLong(id), accountDTO));
+        return ResponseEntity.ok(accountService.updateAccount(id, accountDTO));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteAccount(@PathVariable String id) {
-        accountService.deleteAccount(Long.parseLong(id));
+        accountService.deleteAccount(id);
         return ResponseEntity.noContent().build();
     }
 }

@@ -6,9 +6,10 @@ import java.util.List;
 
 public interface TransactionService {
     TransactionDTO createTransaction(TransactionDTO transactionDTO);
-    TransactionDTO getTransactionById(Long id);
-    List<TransactionDTO> getTransactionsByAccountId(Long accountId);
-    List<TransactionDTO> getTransactionsByDateRange(Long accountId, LocalDateTime startDate, LocalDateTime endDate);
+    TransactionDTO getTransactionById(String id);
+    List<TransactionDTO> getAllTransactions();
+    List<TransactionDTO> getTransactionsByAccountId(String accountId);
+    List<TransactionDTO> getTransactionsByDateRange(String accountId, LocalDateTime startDate, LocalDateTime endDate);
     List<TransactionDTO> getFraudulentTransactions();
     void detectFraud();
 }

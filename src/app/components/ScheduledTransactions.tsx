@@ -20,27 +20,37 @@ export function ScheduledTransactions() {
     customerAccounts.some(acc => acc.id === st.accountId)
   );
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const nextDate = new Date();
-    nextDate.setDate(nextDate.getDate() + 30);
+    if (formData.frequency === 'daily') {
+      nextDate.setDate(nextDate.getDate() + 1);
+    } else if (formData.frequency === 'weekly') {
+      nextDate.setDate(nextDate.getDate() + 7);
+    } else {
+      nextDate.setDate(nextDate.getDate() + 30);
+    }
 
-    addScheduledTransaction({
-      ...formData,
-      amount: parseFloat(formData.amount),
-      nextExecutionDate: nextDate.toISOString(),
-      isActive: true,
-    });
+    try {
+      await addScheduledTransaction({
+        ...formData,
+        amount: parseFloat(formData.amount),
+        nextExecutionDate: nextDate.toISOString(),
+        isActive: true,
+      });
 
-    toast.success('Scheduled transaction created');
-    setShowModal(false);
-    setFormData({
-      accountId: '',
-      toAccountId: '',
-      amount: '',
-      frequency: 'monthly',
-      description: '',
-    });
+      toast.success('Scheduled transaction created');
+      setShowModal(false);
+      setFormData({
+        accountId: '',
+        toAccountId: '',
+        amount: '',
+        frequency: 'monthly',
+        description: '',
+      });
+    } catch (error) {
+      toast.error('Schedule failed', { description: 'Please try again.' });
+    }
   };
 
   return (

@@ -21,22 +21,27 @@ public class TransactionController {
         return ResponseEntity.ok(transactionService.createTransaction(transactionDTO));
     }
 
+    @GetMapping
+    public ResponseEntity<List<TransactionDTO>> getAllTransactions() {
+        return ResponseEntity.ok(transactionService.getAllTransactions());
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<TransactionDTO> getTransaction(@PathVariable String id) {
-        throw new RuntimeException("Implement getTransactionById with String ID");
+        return ResponseEntity.ok(transactionService.getTransactionById(id));
     }
 
     @GetMapping("/account/{accountId}")
     public ResponseEntity<List<TransactionDTO>> getAccountTransactions(@PathVariable String accountId) {
-        throw new RuntimeException("Implement getTransactionsByAccountId with String accountId");
+        return ResponseEntity.ok(transactionService.getTransactionsByAccountId(accountId));
     }
 
     @GetMapping("/account/{accountId}/range")
     public ResponseEntity<List<TransactionDTO>> getTransactionsByDateRange(
             @PathVariable String accountId,
-            @RequestParam java.time.LocalDateTime startDate,
-            @RequestParam java.time.LocalDateTime endDate) {
-        throw new RuntimeException("Implement getTransactionsByDateRange with String accountId");
+            @RequestParam LocalDateTime startDate,
+            @RequestParam LocalDateTime endDate) {
+        return ResponseEntity.ok(transactionService.getTransactionsByDateRange(accountId, startDate, endDate));
     }
 
     @GetMapping("/fraud-checks")

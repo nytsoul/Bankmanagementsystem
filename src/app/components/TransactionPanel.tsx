@@ -14,9 +14,9 @@ export function TransactionPanel() {
 
   const customerAccounts = accounts.filter(a => a.customerId === currentUser?.customerId);
 
-  const handleDeposit = (e: React.FormEvent) => {
+  const handleDeposit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const success = deposit(accountId, parseFloat(amount), description);
+    const success = await deposit(accountId, parseFloat(amount), description);
     if (success) {
       toast.success('Deposit successful', { description: `$${amount} deposited to your account` });
       setAmount('');
@@ -26,9 +26,9 @@ export function TransactionPanel() {
     }
   };
 
-  const handleWithdraw = (e: React.FormEvent) => {
+  const handleWithdraw = async (e: React.FormEvent) => {
     e.preventDefault();
-    const success = withdraw(accountId, parseFloat(amount), description);
+    const success = await withdraw(accountId, parseFloat(amount), description);
     if (success) {
       toast.success('Withdrawal successful', { description: `$${amount} withdrawn from your account` });
       setAmount('');
@@ -38,9 +38,9 @@ export function TransactionPanel() {
     }
   };
 
-  const handleTransfer = (e: React.FormEvent) => {
+  const handleTransfer = async (e: React.FormEvent) => {
     e.preventDefault();
-    const success = transfer(accountId, toAccountId, parseFloat(amount), description);
+    const success = await transfer(accountId, toAccountId, parseFloat(amount), description);
     if (success) {
       toast.success('Transfer successful', { description: `$${amount} transferred` });
       setAmount('');

@@ -19,11 +19,13 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public AccountDTO createAccount(AccountDTO accountDTO, String userId) {
         Account account = Account.builder()
-                .accountNumber(accountDTO.getAccountNumber())
+                .accountNumber(accountDTO.getAccountNumber() != null
+                        ? accountDTO.getAccountNumber()
+                        : String.valueOf(System.currentTimeMillis()))
                 .userId(userId)
-                .accountType(Account.AccountType.valueOf(accountDTO.getAccountType()))
-                .balance(accountDTO.getBalance())
-                .interestRate(accountDTO.getInterestRate())
+                .accountType(Account.AccountType.valueOf(accountDTO.getAccountType().toUpperCase()))
+                .balance(accountDTO.getBalance() != null ? accountDTO.getBalance() : java.math.BigDecimal.ZERO)
+                .interestRate(accountDTO.getInterestRate() != null ? accountDTO.getInterestRate() : java.math.BigDecimal.ZERO)
                 .createdAt(java.time.LocalDateTime.now())
                 .isActive(true)
                 .build();
@@ -33,8 +35,10 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public AccountDTO getAccountById(Long id) {
-        throw new ResourceNotFoundException("String ID expected, not Long");
+    public AccountDTO getAccountById(String id) {
+        return accountRepository.findById(id)
+                .map(this::convertToDTO)
+                .orElseThrow(() -> new ResourceNotFoundException("Account not found with id: " + id));
     }
 
     @Override
@@ -42,6 +46,13 @@ public class AccountServiceImpl implements AccountService {
         return accountRepository.findByAccountNumber(accountNumber)
                 .map(this::convertToDTO)
                 .orElseThrow(() -> new ResourceNotFoundException("Account not found with number: " + accountNumber));
+    }
+
+    public List<AccountDTO> getAllAccounts() {
+        return accountRepository.findAll()
+                .stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -53,18 +64,47 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public AccountDTO updateAccount(Long id, AccountDTO accountDTO) {
-        throw new ResourceNotFoundException("String ID expected, not Long");
+    public AccountDTO updateAccount(String id, AccountDTO accountDTO) {
+        Account account = accountRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Account not found with id: " + id));
+
+        if (accountDTO.getAccountNumber() != null) {
+            account.setAccountNumber(accountDTO.getAccountNumber());
+        }
+
+        if (accountDTO.getAccountType() != null) {
+            account.setAccountType(Account.AccountType.valueOf(accountDTO.getAccountType().toUpperCase()));
+        }
+
+        if (accountDTO.getBalance() != null) {
+            account.setBalance(accountDTO.getBalance());
+        }
+
+        if (accountDTO.getInterestRate() != null) {
+            account.setInterestRate(accountDTO.getInterestRate());
+        }
+
+        if (accountDTO.getIsActive() != null) {
+            account.setIsActive(accountDTO.getIsActive());
+        }
+
+        account.setLastModified(java.time.LocalDateTime.now());
+        Account saved = accountRepository.save(account);
+        return convertToDTO(saved);
     }
 
     @Override
-    public void deleteAccount(Long id) {
-        throw new ResourceNotFoundException("String ID expected, not Long");
+    public void deleteAccount(String id) {
+        if (!accountRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Account not found with id: " + id);
+        }
+        accountRepository.deleteById(id);
     }
 
     private AccountDTO convertToDTO(Account account) {
         return AccountDTO.builder()
                 .id(account.getId())
+                .userId(account.getUserId())
                 .accountNumber(account.getAccountNumber())
                 .accountType(account.getAccountType().name())
                 .balance(account.getBalance())

@@ -9,7 +9,7 @@ import com.example.backend.repository.UserRepository;
 import com.example.backend.service.AuthService;
 import com.example.backend.service.JwtService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -21,7 +21,8 @@ public class AuthServiceImpl implements AuthService {
     @Autowired
     private JwtService jwtService;
 
-    private BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @Override
     public LoginResponse login(LoginRequest request) {
@@ -42,15 +43,28 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public UserDTO register(UserDTO userDTO) {
+        if (userDTO.getEmail() == null || userDTO.getEmail().isBlank()) {
+            throw new IllegalArgumentException("Email is required");
+        }
+
         if (userRepository.existsByEmail(userDTO.getEmail())) {
-            throw new UnauthorizedException("Email already registered");
+            throw new IllegalArgumentException("Email already registered");
+        }
+
+        if (userDTO.getPassword() == null || userDTO.getPassword().isBlank()) {
+            throw new IllegalArgumentException("Password is required");
         }
 
         User user = User.builder()
                 .email(userDTO.getEmail())
-                .password(passwordEncoder.encode(userDTO.getEmail())) // TODO: Use password from DTO
+                .password(passwordEncoder.encode(userDTO.getPassword()))
                 .firstName(userDTO.getFirstName())
                 .lastName(userDTO.getLastName())
+                .phoneNumber(userDTO.getPhoneNumber())
+                .address(userDTO.getAddress())
+                .city(userDTO.getCity())
+                .state(userDTO.getState())
+                .zipCode(userDTO.getZipCode())
                 .role(User.UserRole.CUSTOMER)
                 .isActive(true)
                 .build();

@@ -5,9 +5,10 @@ import java.util.List;
 
 public interface ScheduledTransactionService {
     ScheduledTransactionDTO createScheduledTransaction(ScheduledTransactionDTO dto);
-    ScheduledTransactionDTO getScheduledTransactionById(Long id);
-    List<ScheduledTransactionDTO> getScheduledTransactionsByAccountId(Long accountId);
-    ScheduledTransactionDTO updateScheduledTransaction(Long id, ScheduledTransactionDTO dto);
-    void deleteScheduledTransaction(Long id);
+    ScheduledTransactionDTO getScheduledTransactionById(String id);
+    List<ScheduledTransactionDTO> getAllScheduledTransactions();
+    List<ScheduledTransactionDTO> getScheduledTransactionsByAccountId(String accountId);
+    ScheduledTransactionDTO updateScheduledTransaction(String id, ScheduledTransactionDTO dto);
+    void deleteScheduledTransaction(String id);
     void processScheduledTransactions();
 }

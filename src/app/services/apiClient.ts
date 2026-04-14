@@ -56,8 +56,24 @@ class ApiClient {
       const response = await fetch(url, options);
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || `HTTP ${response.status}`);
+        const contentType = response.headers.get('content-type') || '';
+        let message = `HTTP ${response.status}`;
+
+        try {
+          if (contentType.includes('application/json')) {
+            const error = await response.json();
+            message = error?.message || error?.error || message;
+          } else {
+            const text = await response.text();
+            if (text) {
+              message = text;
+            }
+          }
+        } catch {
+          // Keep fallback HTTP message if body parsing fails.
+        }
+
+        throw new Error(message);
       }
 
       // Handle empty responses
@@ -68,6 +84,12 @@ class ApiClient {
 
       return {} as T;
     } catch (error) {
+      if (error instanceof TypeError) {
+        const networkError = new Error('Backend server is unreachable. Start backend and local MongoDB.');
+        console.error(`API Error [${method} ${endpoint}]:`, networkError);
+        throw networkError;
+      }
+
       console.error(`API Error [${method} ${endpoint}]:`, error);
       throw error;
     }
@@ -90,18 +112,30 @@ class ApiClient {
     firstName: string;
     lastName: string;
     phoneNumber?: string;
+    password?: string;
+    address?: string;
+    city?: string;
+    state?: string;
+    zipCode?: string;
   }) {
     return this.request<any>('POST', '/auth/register', userData);
   }
 
   // Account endpoints
-  async createAccount(accountData: {
-    accountNumber: string;
-    accountType: string;
-    balance: number;
-    interestRate: number;
-  }) {
-    return this.request<any>('POST', '/accounts', accountData);
+  async createAccount(
+    userId: string,
+    accountData: {
+      accountNumber?: string;
+      accountType: string;
+      balance?: number;
+      interestRate?: number;
+    }
+  ) {
+    return this.request<any>('POST', `/accounts?userId=${encodeURIComponent(userId)}`, accountData);
+  }
+
+  async getAccounts() {
+    return this.request<any>('GET', '/accounts');
   }
 
   async getAccountsByUser(userId: string) {
@@ -140,6 +174,10 @@ class ApiClient {
     return this.request<any>('POST', '/transactions', transactionData);
   }
 
+  async getTransactions() {
+    return this.request<any>('GET', '/transactions');
+  }
+
   async getAccountTransactions(accountId: string) {
     return this.request<any>('GET', `/transactions/account/${accountId}`);
   }
@@ -159,13 +197,18 @@ class ApiClient {
     amount: number;
     scheduledDate: string;
     recurrenceType: string;
+    nextExecutionDate?: string;
     recipientAccount?: string;
     recipientName?: string;
   }) {
     return this.request<any>('POST', '/scheduled-transactions', scheduledData);
   }
 
-  async getScheduledTransactions(accountId: string) {
+  async getAllScheduledTransactions() {
+    return this.request<any>('GET', '/scheduled-transactions');
+  }
+
+  async getScheduledTransactionsByAccount(accountId: string) {
     return this.request<any>('GET', `/scheduled-transactions/account/${accountId}`);
   }
 
@@ -182,6 +225,22 @@ class ApiClient {
 
   async processScheduledTransactions() {
     return this.request<any>('POST', '/scheduled-transactions/process');
+  }
+
+  async getUsers() {
+    return this.request<any>('GET', '/users');
+  }
+
+  async getUser(id: string) {
+    return this.request<any>('GET', `/users/${id}`);
+  }
+
+  async updateUser(id: string, userData: any) {
+    return this.request<any>('PUT', `/users/${id}`, userData);
+  }
+
+  async deleteUser(id: string) {
+    return this.request<any>('DELETE', `/users/${id}`);
   }
 }
 

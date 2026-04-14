@@ -8,8 +8,8 @@ export function MyAccounts() {
 
   const customerAccounts = accounts.filter(a => a.customerId === currentUser?.customerId);
 
-  const handleCalculateInterest = (accountId: string) => {
-    calculateInterest(accountId);
+  const handleCalculateInterest = async (accountId: string) => {
+    await calculateInterest(accountId);
     toast.success('Interest calculated and credited', { description: 'Interest has been added to your account' });
   };
 

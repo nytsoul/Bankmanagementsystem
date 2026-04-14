@@ -14,31 +14,47 @@ export function AccountManagement() {
     interestRate: 4.5,
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    addAccount({
-      ...formData,
-      status: 'active',
-    });
-    toast.success('Account created successfully');
-    setShowModal(false);
-    setFormData({ customerId: '', accountType: 'savings', balance: 0, interestRate: 4.5 });
+    try {
+      await addAccount({
+        ...formData,
+        status: 'active',
+      });
+      toast.success('Account created successfully');
+      setShowModal(false);
+      setFormData({ customerId: '', accountType: 'savings', balance: 0, interestRate: 4.5 });
+    } catch (error) {
+      toast.error('Account creation failed', { description: 'Please try again.' });
+    }
   };
 
-  const handleFreeze = (accountId: string) => {
-    freezeAccount(accountId);
-    toast.success('Account frozen successfully');
+  const handleFreeze = async (accountId: string) => {
+    try {
+      await freezeAccount(accountId);
+      toast.success('Account frozen successfully');
+    } catch (error) {
+      toast.error('Freeze failed', { description: 'Unable to update this account.' });
+    }
   };
 
-  const handleUnfreeze = (accountId: string) => {
-    unfreezeAccount(accountId);
-    toast.success('Account unfrozen successfully');
+  const handleUnfreeze = async (accountId: string) => {
+    try {
+      await unfreezeAccount(accountId);
+      toast.success('Account unfrozen successfully');
+    } catch (error) {
+      toast.error('Unfreeze failed', { description: 'Unable to update this account.' });
+    }
   };
 
-  const handleClose = (accountId: string) => {
+  const handleClose = async (accountId: string) => {
     if (confirm('Are you sure you want to close this account?')) {
-      closeAccount(accountId);
-      toast.success('Account closed successfully');
+      try {
+        await closeAccount(accountId);
+        toast.success('Account closed successfully');
+      } catch (error) {
+        toast.error('Close failed', { description: 'Unable to close this account.' });
+      }
     }
   };
 

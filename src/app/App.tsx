@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router';
 import { Toaster } from 'sonner';
 import { BankProvider, useBank } from './context/BankContext';
 import { Login } from './components/Login';
+import { Register } from './components/Register';
 import { Layout } from './components/Layout';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { AdminDashboard } from './components/AdminDashboard';
@@ -32,6 +33,7 @@ export default function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Login />} />
+          <Route path="/register" element={<Register />} />
 
           <Route
             path="/dashboard"

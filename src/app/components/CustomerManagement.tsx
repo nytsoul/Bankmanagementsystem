@@ -13,20 +13,30 @@ export function CustomerManagement() {
     email: '',
     phone: '',
     address: '',
+    password: '',
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (editingCustomer) {
-      updateCustomer(editingCustomer, formData);
-      toast.success('Customer updated successfully');
-    } else {
-      addCustomer(formData);
-      toast.success('Customer added successfully');
+    try {
+      if (editingCustomer) {
+        await updateCustomer(editingCustomer, {
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          address: formData.address,
+        });
+        toast.success('Customer updated successfully');
+      } else {
+        await addCustomer(formData);
+        toast.success('Customer added successfully');
+      }
+      setShowModal(false);
+      setEditingCustomer(null);
+      setFormData({ name: '', email: '', phone: '', address: '', password: '' });
+    } catch (error) {
+      toast.error('Action failed', { description: 'Please check the details and try again.' });
     }
-    setShowModal(false);
-    setEditingCustomer(null);
-    setFormData({ name: '', email: '', phone: '', address: '' });
   };
 
   const handleEdit = (customer: typeof customers[0]) => {
@@ -36,21 +46,26 @@ export function CustomerManagement() {
       email: customer.email,
       phone: customer.phone,
       address: customer.address,
+      password: '',
     });
     setShowModal(true);
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (confirm('Are you sure you want to delete this customer?')) {
-      deleteCustomer(id);
-      toast.success('Customer deleted successfully');
+      try {
+        await deleteCustomer(id);
+        toast.success('Customer deleted successfully');
+      } catch (error) {
+        toast.error('Delete failed', { description: 'Unable to delete this customer.' });
+      }
     }
   };
 
   const handleClose = () => {
     setShowModal(false);
     setEditingCustomer(null);
-    setFormData({ name: '', email: '', phone: '', address: '' });
+    setFormData({ name: '', email: '', phone: '', address: '', password: '' });
   };
 
   return (
@@ -193,6 +208,19 @@ export function CustomerManagement() {
                     required
                   />
                 </div>
+
+                {!editingCustomer && (
+                  <div>
+                    <label className="block text-sm text-slate-700 mb-2">Temporary Password</label>
+                    <input
+                      type="password"
+                      value={formData.password}
+                      onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                      className="w-full px-4 py-2 bg-white/70 border border-sky-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+                      required
+                    />
+                  </div>
+                )}
 
                 <div className="flex gap-3 pt-4">
                   <button

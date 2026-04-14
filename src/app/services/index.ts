@@ -14,6 +14,11 @@ export const authService = {
     firstName: string;
     lastName: string;
     phoneNumber?: string;
+    password?: string;
+    address?: string;
+    city?: string;
+    state?: string;
+    zipCode?: string;
   }) {
     return await apiClient.register(userData);
   },
@@ -32,8 +37,12 @@ export const authService = {
 };
 
 export const accountService = {
-  async createAccount(accountData: any) {
-    return await apiClient.createAccount(accountData);
+  async createAccount(userId: string, accountData: any) {
+    return await apiClient.createAccount(userId, accountData);
+  },
+
+  async getAccounts() {
+    return await apiClient.getAccounts();
   },
 
   async getAccountsByUser(userId: string) {
@@ -58,6 +67,10 @@ export const transactionService = {
     return await apiClient.createTransaction(data);
   },
 
+  async getTransactions() {
+    return await apiClient.getTransactions();
+  },
+
   async getAccountTransactions(accountId: string) {
     return await apiClient.getAccountTransactions(accountId);
   },
@@ -76,8 +89,12 @@ export const scheduledTransactionService = {
     return await apiClient.createScheduledTransaction(data);
   },
 
+  async getAllScheduledTransactions() {
+    return await apiClient.getAllScheduledTransactions();
+  },
+
   async getScheduledTransactions(accountId: string) {
-    return await apiClient.getScheduledTransactions(accountId);
+    return await apiClient.getScheduledTransactionsByAccount(accountId);
   },
 
   async updateScheduledTransaction(id: string, data: any) {
@@ -90,5 +107,23 @@ export const scheduledTransactionService = {
 
   async processScheduledTransactions() {
     return await apiClient.processScheduledTransactions();
+  },
+};
+
+export const userService = {
+  async getUsers() {
+    return await apiClient.getUsers();
+  },
+
+  async getUser(id: string) {
+    return await apiClient.getUser(id);
+  },
+
+  async updateUser(id: string, data: any) {
+    return await apiClient.updateUser(id, data);
+  },
+
+  async deleteUser(id: string) {
+    return await apiClient.deleteUser(id);
   },
 };

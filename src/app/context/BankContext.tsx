@@ -15,6 +15,7 @@ import {
   transactionService,
   scheduledTransactionService,
   userService,
+  supabase
 } from '../services';
 
 interface BankContextType {
@@ -246,32 +247,54 @@ export function BankProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    loadFromStorage();
     loadActivityLog();
+
+    // Set up auth listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (session?.user) {
+        // Fetch profile to get role
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', session.user.id)
+          .single();
+
+        const user: User = {
+          id: session.user.id,
+          username: session.user.email || '',
+          password: '',
+          role: mapRole(profile?.role),
+          customerId: session.user.id,
+        };
+        setCurrentUser(user);
+      } else {
+        setCurrentUser(null);
+        setUsers([]);
+        setCustomers([]);
+        setAccounts([]);
+        setTransactions([]);
+        setScheduledTransactions([]);
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   useEffect(() => {
-    if (!currentUser) return;
-    loadAllData();
+    if (currentUser) {
+      loadAllData();
+    }
   }, [currentUser?.id]);
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
-      const response = await authService.login(email, password);
-      if (!response?.user) return false;
-
-      const user: User = {
-        id: response.user.id,
-        username: response.user.email,
-        password: '',
-        role: mapRole(response.user.role),
-        customerId: response.user.id,
-      };
-
-      setCurrentUser(user);
-      localStorage.setItem('currentUser', JSON.stringify(user));
+      await authService.login(email, password);
+      // Auth listener handles the state update
       return true;
     } catch (error) {
+      console.error('Login failed:', error);
       return false;
     }
   };
@@ -315,15 +338,13 @@ export function BankProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const logout = () => {
-    authService.logout();
-    setCurrentUser(null);
-    localStorage.removeItem('currentUser');
-    setUsers([]);
-    setCustomers([]);
-    setAccounts([]);
-    setTransactions([]);
-    setScheduledTransactions([]);
+  const logout = async () => {
+    try {
+      await authService.logout();
+      // Auth listener handles resetting individual states
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
   };
 
   const addCustomer = async (customerData: Omit<Customer, 'id' | 'createdAt' | 'isActive'> & { password: string }) => {

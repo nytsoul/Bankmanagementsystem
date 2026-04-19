@@ -49,9 +49,9 @@ public class GlobalExceptionHandler {
             Exception ex,
             HttpServletRequest request) {
         return buildError(
-                HttpStatus.SERVICE_UNAVAILABLE,
-                "Database is temporarily unavailable. Check MongoDB Atlas network access/IP allowlist.",
-                request.getRequestURI());
+            HttpStatus.SERVICE_UNAVAILABLE,
+            "Database is temporarily unavailable. Check MongoDB Atlas network access/IP allowlist.",
+            request.getRequestURI());
     }
 
     @ExceptionHandler(Exception.class)

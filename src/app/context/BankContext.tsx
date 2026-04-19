@@ -14,8 +14,7 @@ import {
   accountService,
   transactionService,
   scheduledTransactionService,
-  userService,
-  supabase
+  userService
 } from '../services';
 
 interface BankContextType {
@@ -73,6 +72,7 @@ export function BankProvider({ children }: { children: ReactNode }) {
   const [activityLog, setActivityLog] = useState<AdminActivity[]>([]);
 
   const activityStorageKey = 'adminActivityLog';
+  const currentUserStorageKey = 'currentUser';
 
   const mapRole = (role?: string): User['role'] => {
     return role?.toLowerCase() === 'admin' ? 'admin' : 'customer';
@@ -228,7 +228,7 @@ export function BankProvider({ children }: { children: ReactNode }) {
   };
 
   const loadFromStorage = () => {
-    const storedUser = localStorage.getItem('currentUser');
+    const storedUser = localStorage.getItem(currentUserStorageKey);
     if (storedUser) {
       setCurrentUser(JSON.parse(storedUser));
     }
@@ -248,38 +248,7 @@ export function BankProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     loadActivityLog();
-
-    // Set up auth listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (session?.user) {
-        // Fetch profile to get role
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', session.user.id)
-          .single();
-
-        const user: User = {
-          id: session.user.id,
-          username: session.user.email || '',
-          password: '',
-          role: mapRole(profile?.role),
-          customerId: session.user.id,
-        };
-        setCurrentUser(user);
-      } else {
-        setCurrentUser(null);
-        setUsers([]);
-        setCustomers([]);
-        setAccounts([]);
-        setTransactions([]);
-        setScheduledTransactions([]);
-      }
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
+    loadFromStorage();
   }, []);
 
   useEffect(() => {
@@ -290,11 +259,23 @@ export function BankProvider({ children }: { children: ReactNode }) {
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
-      await authService.login(email, password);
-      // Auth listener handles the state update
-      return true;
+      const response = await authService.login(email, password);
+      if (response?.user) {
+        const nextUser: User = {
+          id: response.user.id,
+          username: response.user.email || '',
+          password: '',
+          role: mapRole(response.user.role),
+          customerId: response.user.id,
+        };
+        setCurrentUser(nextUser);
+        localStorage.setItem(currentUserStorageKey, JSON.stringify(nextUser));
+        return true;
+      }
+      return false;
     } catch (error) {
       console.error('Login failed:', error);
+      localStorage.removeItem(currentUserStorageKey);
       return false;
     }
   };
@@ -341,7 +322,13 @@ export function BankProvider({ children }: { children: ReactNode }) {
   const logout = async () => {
     try {
       await authService.logout();
-      // Auth listener handles resetting individual states
+      setCurrentUser(null);
+      setUsers([]);
+      setCustomers([]);
+      setAccounts([]);
+      setTransactions([]);
+      setScheduledTransactions([]);
+      localStorage.removeItem(currentUserStorageKey);
     } catch (error) {
       console.error('Logout failed:', error);
     }

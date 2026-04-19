@@ -19,6 +19,15 @@ This guide deploys the frontend to Vercel and the Spring Boot backend to Render.
 - Start Command:
   - `java -jar target/Backend-0.0.1-SNAPSHOT.jar`
 
+### Docker option (Render)
+
+If you want Docker instead of the Java runtime:
+
+- Service type: Web Service
+- Environment: Docker
+- Root Directory: Backend
+- Dockerfile Path: `Dockerfile`
+
 ### 2) Add environment variables
 
 Set these in Render > Environment:
